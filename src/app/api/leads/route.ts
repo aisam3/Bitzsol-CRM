@@ -118,8 +118,8 @@ export async function POST(req: NextRequest) {
     sendDiscordNotification(formatDiscordLeadCreated(fullName, session.name, pipeline.name));
 
     return NextResponse.json({ data: lead, message: "Lead created." }, { status: 201 });
-  } catch (err) {
+  } catch (err: any) {
     console.error("[POST /api/leads]", err);
-    return NextResponse.json({ error: "Internal server error." }, { status: 500 });
+    return NextResponse.json({ error: err.message || "Internal server error." }, { status: 500 });
   }
 }

@@ -109,9 +109,9 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     });
 
     return NextResponse.json({ data: lead, message: "Lead updated." });
-  } catch (err) {
+  } catch (err: any) {
     console.error("[PATCH /api/leads/[id]]", err);
-    return NextResponse.json({ error: "Internal server error." }, { status: 500 });
+    return NextResponse.json({ error: err.message || "Internal server error." }, { status: 500 });
   }
 }
 
