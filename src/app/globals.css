@@ -1,26 +1,153 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Core Theme (Auto-discovered by Tailwind v4) */
+  --color-background: #fafafa;
+  --color-foreground: #09090b;
+  
+  --color-card: #ffffff;
+  --color-card-foreground: #09090b;
+  
+  --color-popover: #ffffff;
+  --color-popover-foreground: #09090b;
+  
+  --color-primary: #18181b;
+  --color-primary-foreground: #fafafa;
+  
+  --color-secondary: #f4f4f5;
+  --color-secondary-foreground: #18181b;
+  
+  --color-muted: #f4f4f5;
+  --color-muted-foreground: #71717a;
+  
+  --color-accent: #f4f4f5;
+  --color-accent-foreground: #18181b;
+  
+  --color-destructive: #ef4444;
+  --color-destructive-foreground: #fafafa;
+  
+  --color-border: #e4e4e7;
+  --color-input: #e4e4e7;
+  --color-ring: #18181b;
+  
+  --radius: 0.75rem;
+
+  /* Fonts */
+  --font-sans: var(--font-outfit), var(--font-geist-sans), ui-sans-serif, system-ui;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+  /* Custom Utilities */
+  --background-image-premium-gradient: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #d946ef 100%);
+
+  /* Glassmorphism */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.3);
+  --glass-blur: 12px;
+
+  /* CRM Specific Adaptable Theme Colors */
+  --crm-bg: #f8fafc;
+  --crm-panel: #ffffff;
+  --crm-border: #e2e8f0;
+  --crm-text-main: #0f172a;
+  --crm-text-sub: #64748b;
+  --crm-panel-hover: #f1f5f9;
+  --crm-input-bg: #f1f5f9;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+.dark {
+  --color-background: #020617;
+  --color-foreground: #f8fafc;
+  
+  --color-card: #0f172a;
+  --color-card-foreground: #f8fafc;
+  
+  --color-popover: #020617;
+  --color-popover-foreground: #f8fafc;
+  
+  --color-primary: #3b82f6;
+  --color-primary-foreground: #ffffff;
+  
+  --color-secondary: #1e293b;
+  --color-secondary-foreground: #f8fafc;
+  
+  --color-muted: #1e293b;
+  --color-muted-foreground: #94a3b8;
+  
+  --color-accent: #1e293b;
+  --color-accent-foreground: #f8fafc;
+  
+  --color-destructive: #7f1d1d;
+  --color-destructive-foreground: #f8fafc;
+  
+  --color-border: #1e293b;
+  --color-input: #1e293b;
+  --color-ring: #3b82f6;
+
+  /* Glassmorphism Dark */
+  --glass-bg: rgba(15, 23, 42, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.05);
+  --glass-blur: 16px;
+
+  /* CRM Specific Adaptable Theme Colors Dark */
+  --crm-bg: #0c0f1d;
+  --crm-panel: #131627;
+  --crm-border: #1f233d;
+  --crm-text-main: #ffffff;
+  --crm-text-sub: #888d9f;
+  --crm-panel-hover: #1c1f36;
+  --crm-input-bg: #131627;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@theme {
+  --color-crm-bg: var(--crm-bg);
+  --color-crm-panel: var(--crm-panel);
+  --color-crm-border: var(--crm-border);
+  --color-crm-text-main: var(--crm-text-main);
+  --color-crm-text-sub: var(--crm-text-sub);
+  --color-crm-panel-hover: var(--crm-panel-hover);
+  --color-crm-input-bg: var(--crm-input-bg);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  .glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border);
+  }
+
+  .premium-gradient {
+    background: var(--background-image-premium-gradient);
+  }
+
+  .text-gradient {
+    background: var(--background-image-premium-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+  }
+}
+
+/* Animations */
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
 }
