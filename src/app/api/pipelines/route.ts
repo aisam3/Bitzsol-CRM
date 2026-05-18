@@ -8,13 +8,43 @@ export async function GET() {
     const session = await getSession();
     if (!session) return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
 
-    const pipelines = await prisma.pipeline.findMany({
+    let pipelines = await prisma.pipeline.findMany({
       include: {
         createdBy: { select: { name: true, email: true } },
         _count: { select: { leads: true } },
       },
       orderBy: { createdAt: "desc" },
     });
+
+    if (pipelines.length === 0) {
+      const defaults = [
+        { name: "Web Development", description: "Design & development leads for web portals, SaaS, and websites." },
+        { name: "App Development", description: "Custom iOS, Android, and cross-platform mobile application development." },
+        { name: "SEO & Digital Marketing", description: "Search engine optimization, paid marketing, and social media campaigns." },
+        { name: "Enterprise Consulting", description: "IT consulting, custom software architecting, and security audits." }
+      ];
+
+      await Promise.all(
+        defaults.map(d =>
+          prisma.pipeline.create({
+            data: {
+              name: d.name,
+              description: d.description,
+              createdById: session.id
+            }
+          })
+        )
+      );
+
+      // Re-fetch with newly seeded pipelines
+      pipelines = await prisma.pipeline.findMany({
+        include: {
+          createdBy: { select: { name: true, email: true } },
+          _count: { select: { leads: true } },
+        },
+        orderBy: { createdAt: "desc" },
+      });
+    }
 
     return NextResponse.json({ data: pipelines });
   } catch (err) {
