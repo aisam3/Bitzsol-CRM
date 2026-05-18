@@ -55,7 +55,6 @@ model Pipeline {
 model Lead {
   id           String   @id @default(uuid())
   firstName    String
-  middleName   String?
   lastName     String?
   date         DateTime @default(now())
   designation  String?

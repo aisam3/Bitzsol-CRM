@@ -52,14 +52,13 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
     const body = await req.json();
     const {
-      firstName, middleName, lastName, date, designation,
+      firstName, lastName, date, designation,
       leadSource, sourceLink, remarks, status,
       emails, phones, customFields,
     } = body;
 
     const updateData: Record<string, unknown> = {};
     if (firstName !== undefined) updateData.firstName = firstName.trim();
-    if (middleName !== undefined) updateData.middleName = middleName?.trim() || null;
     if (lastName !== undefined) updateData.lastName = lastName?.trim() || null;
     if (date !== undefined) updateData.date = new Date(date);
     if (designation !== undefined) updateData.designation = designation?.trim() || null;

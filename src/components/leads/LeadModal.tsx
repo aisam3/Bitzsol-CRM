@@ -15,7 +15,6 @@ export function LeadModal({ pipelines, lead, onClose, onSaved }: Props) {
   const isEdit = !!lead;
 
   const [firstName, setFirstName] = useState(lead?.firstName ?? "");
-  const [middleName, setMiddleName] = useState(lead?.middleName ?? "");
   const [lastName, setLastName] = useState(lead?.lastName ?? "");
   const [designation, setDesignation] = useState(lead?.designation ?? "");
   const [status, setStatus] = useState(lead?.status ?? "New");
@@ -55,7 +54,7 @@ export function LeadModal({ pipelines, lead, onClose, onSaved }: Props) {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          firstName, middleName, lastName, designation, status,
+          firstName, lastName, designation, status,
           leadSource, sourceLink, remarks, pipelineId,
           emails: emails.filter((e) => e.email.trim()),
           phones: phones.filter((p) => p.phone.trim()),
@@ -92,14 +91,10 @@ export function LeadModal({ pipelines, lead, onClose, onSaved }: Props) {
           {error && <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-3 rounded-xl text-xs">{error}</div>}
 
           {/* Name row */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className={labelCls}>First Name *</label>
               <input type="text" required value={firstName} onChange={(e) => setFirstName(e.target.value)} className={inputCls} placeholder="John" />
-            </div>
-            <div>
-              <label className={labelCls}>Middle Name</label>
-              <input type="text" value={middleName} onChange={(e) => setMiddleName(e.target.value)} className={inputCls} placeholder="A." />
             </div>
             <div>
               <label className={labelCls}>Last Name</label>

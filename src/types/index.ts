@@ -51,7 +51,6 @@ export interface LeadCustomField {
 export interface Lead {
   id: string;
   firstName: string;
-  middleName?: string;
   lastName?: string;
   date: string;
   designation?: string;

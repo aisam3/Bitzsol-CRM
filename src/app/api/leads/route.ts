@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
     const {
-      firstName, middleName, lastName, date, designation,
+      firstName, lastName, date, designation,
       leadSource, sourceLink, remarks, status,
       pipelineId, emails, phones, customFields,
     } = body;
@@ -76,7 +76,6 @@ export async function POST(req: NextRequest) {
     const lead = await prisma.lead.create({
       data: {
         firstName: firstName.trim(),
-        middleName: middleName?.trim() || null,
         lastName: lastName?.trim() || null,
         date: date ? new Date(date) : new Date(),
         designation: designation?.trim() || null,
