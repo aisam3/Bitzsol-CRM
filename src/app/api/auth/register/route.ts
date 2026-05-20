@@ -36,7 +36,10 @@ export async function POST(req: NextRequest) {
     // Fire Discord webhook (non-blocking)
     sendDiscordNotification(formatDiscordLogin(user.name, user.email, "login"));
 
-    const response = NextResponse.json({ data: authUser, message: "Account created successfully." }, { status: 201 });
+    const response = NextResponse.json({
+      data: { ...authUser, image: user.image || undefined },
+      message: "Registration successful.",
+    }, { status: 201 });
     response.cookies.set(cookieConfig.name, cookieConfig.value, {
       httpOnly: cookieConfig.httpOnly,
       maxAge: cookieConfig.maxAge,

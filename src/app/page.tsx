@@ -9,6 +9,7 @@ import { DashboardView } from "@/components/dashboard/DashboardView";
 import { LeadsView } from "@/components/leads/LeadsView";
 import { PipelinesView } from "@/components/pipelines/PipelinesView";
 import { UsersView } from "@/components/users/UsersView";
+import { ProfileModal } from "@/components/profile/ProfileModal";
 
 export type ActiveTab = "Dashboard" | "Leads" | "Pipelines" | "Users";
 
@@ -17,6 +18,7 @@ export default function App() {
   const [sessionLoading, setSessionLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<ActiveTab>("Dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showProfileSettings, setShowProfileSettings] = useState(false);
 
   // Real data state
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -29,6 +31,9 @@ export default function App() {
       .then((r) => r.json())
       .then((res) => {
         if (res.data) setUser(res.data);
+      })
+      .catch(() => {
+        // Network failure — leave user as null, show auth gate
       })
       .finally(() => setSessionLoading(false));
   }, []);
@@ -92,9 +97,10 @@ export default function App() {
             onMenuOpen={() => setSidebarOpen(true)}
             activeTab={activeTab}
             onSignOut={handleSignOut}
+            onOpenProfileSettings={() => setShowProfileSettings(true)}
           />
 
-          <main className="flex-1 p-6">
+          <main className="flex-1 p-4 sm:p-6">
             {activeTab === "Dashboard" && (
               <DashboardView
                 user={user}
@@ -124,12 +130,24 @@ export default function App() {
             )}
           </main>
 
-          <footer className="py-5 px-6 text-center border-t border-crm-border text-xs text-crm-text-sub">
+          <footer className="py-4 sm:py-5 px-4 sm:px-6 text-center border-t border-crm-border text-xs text-crm-text-sub">
             Copyright © {new Date().getFullYear()}{" "}
-            <span className="text-crm-text-main font-bold">bitzsol.com</span>. All rights reserved.
+            <span className="text-crm-text-main font-bold">Bitzsol.com</span>. All rights reserved.
           </footer>
         </div>
       </div>
+
+      {showProfileSettings && user && (
+        <ProfileModal
+          user={user}
+          onClose={() => setShowProfileSettings(false)}
+          onSaved={(updatedUser) => {
+            setUser(updatedUser);
+            setShowProfileSettings(false);
+            fetchAll();
+          }}
+        />
+      )}
     </div>
   );
 }

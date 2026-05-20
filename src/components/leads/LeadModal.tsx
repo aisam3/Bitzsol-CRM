@@ -15,6 +15,7 @@ export function LeadModal({ pipelines, lead, onClose, onSaved }: Props) {
   const isEdit = !!lead;
 
   const [firstName, setFirstName] = useState(lead?.firstName ?? "");
+  const [middleName, setMiddleName] = useState(lead?.middleName ?? "");
   const [lastName, setLastName] = useState(lead?.lastName ?? "");
   const [designation, setDesignation] = useState(lead?.designation ?? "");
   const [status, setStatus] = useState(lead?.status ?? "New");
@@ -33,11 +34,68 @@ export function LeadModal({ pipelines, lead, onClose, onSaved }: Props) {
     lead?.customFields ?? []
   );
 
-  const [customStatuses] = useState(["New", "Contacted", "Qualified", "Proposal Sent", "Negotiation", "Closed", "Lost"]);
-  const [customSources] = useState(["Google Search", "Referral", "Cold Outreach", "LinkedIn", "Email Campaign", "Other"]);
+  const [customStatuses, setCustomStatuses] = useState<string[]>(() => {
+    const defaults = ["New", "Contacted", "Qualified", "Proposal Sent", "Negotiation", "Closed", "Lost"];
+    if (lead?.status && !defaults.includes(lead.status)) {
+      defaults.push(lead.status);
+    }
+    return defaults;
+  });
+  const [customSources, setCustomSources] = useState<string[]>(() => {
+    const defaults = ["Google Search", "Referral", "Cold Outreach", "LinkedIn", "Email Campaign", "Other"];
+    if (lead?.leadSource && !defaults.includes(lead.leadSource)) {
+      defaults.push(lead.leadSource);
+    }
+    return defaults;
+  });
+
+  const [newStatusInput, setNewStatusInput] = useState("");
+  const [showNewStatusInput, setShowNewStatusInput] = useState(false);
+  const [newSourceInput, setNewSourceInput] = useState("");
+  const [showNewSourceInput, setShowNewSourceInput] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  function handleAddStatus() {
+    const val = newStatusInput.trim();
+    if (val && !customStatuses.includes(val)) {
+      setCustomStatuses([...customStatuses, val]);
+      setStatus(val);
+      setNewStatusInput("");
+      setShowNewStatusInput(false);
+    }
+  }
+
+  function handleAddSource() {
+    const val = newSourceInput.trim();
+    if (val && !customSources.includes(val)) {
+      setCustomSources([...customSources, val]);
+      setLeadSource(val);
+      setNewSourceInput("");
+      setShowNewSourceInput(false);
+    }
+  }
+
+  function insertFormatting(prefix: string, suffix: string = "") {
+    const textarea = document.getElementById("remarks-textarea") as HTMLTextAreaElement;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = textarea.value;
+
+    const selectedText = text.substring(start, end);
+    const replacement = prefix + selectedText + suffix;
+
+    const newRemarks = text.substring(0, start) + replacement + text.substring(end);
+    setRemarks(newRemarks);
+
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + prefix.length, start + prefix.length + selectedText.length);
+    }, 0);
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -54,7 +112,7 @@ export function LeadModal({ pipelines, lead, onClose, onSaved }: Props) {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          firstName, lastName, designation, status,
+          firstName, middleName, lastName, designation, status,
           leadSource, sourceLink, remarks, pipelineId,
           emails: emails.filter((e) => e.email.trim()),
           phones: phones.filter((p) => p.phone.trim()),
@@ -91,10 +149,14 @@ export function LeadModal({ pipelines, lead, onClose, onSaved }: Props) {
           {error && <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-3 rounded-xl text-xs">{error}</div>}
 
           {/* Name row */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <label className={labelCls}>First Name *</label>
               <input type="text" required value={firstName} onChange={(e) => setFirstName(e.target.value)} className={inputCls} placeholder="John" />
+            </div>
+            <div>
+              <label className={labelCls}>Middle Name</label>
+              <input type="text" value={middleName} onChange={(e) => setMiddleName(e.target.value)} className={inputCls} placeholder="e.g. William" />
             </div>
             <div>
               <label className={labelCls}>Last Name</label>
@@ -118,16 +180,91 @@ export function LeadModal({ pipelines, lead, onClose, onSaved }: Props) {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className={labelCls}>Status</label>
-              <select value={status} onChange={(e) => setStatus(e.target.value)} className={inputCls}>
-                {customStatuses.map((s) => <option key={s}>{s}</option>)}
-              </select>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-[10px] font-bold text-crm-text-sub uppercase tracking-wider">Status</label>
+                {!showNewStatusInput && (
+                  <button
+                    type="button"
+                    onClick={() => setShowNewStatusInput(true)}
+                    className="text-[10px] text-[#03D9AF] hover:underline cursor-pointer font-bold"
+                  >
+                    + Add Custom
+                  </button>
+                )}
+              </div>
+              {showNewStatusInput ? (
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newStatusInput}
+                    onChange={(e) => setNewStatusInput(e.target.value)}
+                    placeholder="New Status"
+                    className="w-full px-3 py-2 rounded-xl bg-crm-input-bg border border-crm-border text-crm-text-main text-xs focus:outline-none focus:border-[#0164DA]"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddStatus}
+                    className="px-3 py-2 bg-[#03D9AF]/15 text-[#03D9AF] border border-[#03D9AF]/30 rounded-xl text-xs font-bold hover:bg-[#03D9AF]/25 cursor-pointer transition-colors"
+                  >
+                    Save
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setShowNewStatusInput(false); setNewStatusInput(""); }}
+                    className="px-3 py-2 bg-crm-panel-hover border border-crm-border rounded-xl text-xs text-crm-text-sub hover:text-crm-text-main cursor-pointer transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <select value={status} onChange={(e) => setStatus(e.target.value)} className={inputCls}>
+                  {customStatuses.map((s) => <option key={s}>{s}</option>)}
+                </select>
+              )}
             </div>
+
             <div>
-              <label className={labelCls}>Lead Source</label>
-              <select value={leadSource} onChange={(e) => setLeadSource(e.target.value)} className={inputCls}>
-                {customSources.map((s) => <option key={s}>{s}</option>)}
-              </select>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-[10px] font-bold text-crm-text-sub uppercase tracking-wider">Lead Source</label>
+                {!showNewSourceInput && (
+                  <button
+                    type="button"
+                    onClick={() => setShowNewSourceInput(true)}
+                    className="text-[10px] text-[#03D9AF] hover:underline cursor-pointer font-bold"
+                  >
+                    + Add Custom
+                  </button>
+                )}
+              </div>
+              {showNewSourceInput ? (
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newSourceInput}
+                    onChange={(e) => setNewSourceInput(e.target.value)}
+                    placeholder="New Source"
+                    className="w-full px-3 py-2 rounded-xl bg-crm-input-bg border border-crm-border text-crm-text-main text-xs focus:outline-none focus:border-[#0164DA]"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddSource}
+                    className="px-3 py-2 bg-[#03D9AF]/15 text-[#03D9AF] border border-[#03D9AF]/30 rounded-xl text-xs font-bold hover:bg-[#03D9AF]/25 cursor-pointer transition-colors"
+                  >
+                    Save
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setShowNewSourceInput(false); setNewSourceInput(""); }}
+                    className="px-3 py-2 bg-crm-panel-hover border border-crm-border rounded-xl text-xs text-crm-text-sub hover:text-crm-text-main cursor-pointer transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <select value={leadSource} onChange={(e) => setLeadSource(e.target.value)} className={inputCls}>
+                  {customSources.map((s) => <option key={s}>{s}</option>)}
+                </select>
+              )}
             </div>
           </div>
 
@@ -186,9 +323,51 @@ export function LeadModal({ pipelines, lead, onClose, onSaved }: Props) {
 
           {/* Remarks */}
           <div>
-            <label className={labelCls}>Remarks</label>
-            <textarea value={remarks} onChange={(e) => setRemarks(e.target.value)} rows={3}
-              className={`${inputCls} resize-none`} placeholder="Notes, requirements, context..." />
+            <div className="flex items-center justify-between mb-2">
+              <label className={labelCls}>Remarks</label>
+              <div className="flex items-center gap-1 bg-crm-panel-hover/50 p-1 rounded-lg border border-crm-border">
+                <button
+                  type="button"
+                  onClick={() => insertFormatting("**", "**")}
+                  className="px-2 py-0.5 text-[10px] font-bold rounded hover:bg-crm-panel border border-transparent hover:border-crm-border text-crm-text-main cursor-pointer"
+                  title="Bold"
+                >
+                  B
+                </button>
+                <button
+                  type="button"
+                  onClick={() => insertFormatting("*", "*")}
+                  className="px-2 py-0.5 text-[10px] italic rounded hover:bg-crm-panel border border-transparent hover:border-crm-border text-crm-text-main cursor-pointer"
+                  title="Italic"
+                >
+                  I
+                </button>
+                <button
+                  type="button"
+                  onClick={() => insertFormatting("- ")}
+                  className="px-2 py-0.5 text-[10px] rounded hover:bg-crm-panel border border-transparent hover:border-crm-border text-crm-text-main cursor-pointer"
+                  title="Bullet List"
+                >
+                  • List
+                </button>
+                <button
+                  type="button"
+                  onClick={() => insertFormatting("1. ")}
+                  className="px-2 py-0.5 text-[10px] rounded hover:bg-crm-panel border border-transparent hover:border-crm-border text-crm-text-main cursor-pointer"
+                  title="Numbered List"
+                >
+                  1. List
+                </button>
+              </div>
+            </div>
+            <textarea
+              id="remarks-textarea"
+              value={remarks}
+              onChange={(e) => setRemarks(e.target.value)}
+              rows={3}
+              className={`${inputCls} resize-none`}
+              placeholder="Notes, requirements, context..."
+            />
           </div>
 
           {/* Custom Fields */}

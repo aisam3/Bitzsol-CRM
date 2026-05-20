@@ -1,6 +1,7 @@
 "use client";
 
 import { LayoutDashboard, Layers, Users, FileText, Settings, LogOut, ChevronRight, X } from "lucide-react";
+import Image from "next/image";
 import type { AuthUser } from "@/types";
 import type { ActiveTab } from "@/app/page";
 
@@ -29,7 +30,9 @@ export function Sidebar({ user, activeTab, onTabChange, onSignOut, open, onClose
       <aside className={`fixed top-0 bottom-0 left-0 z-40 w-64 bg-crm-panel border-r border-crm-border flex flex-col transition-transform duration-300 ${open ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}>
         {/* Logo */}
         <div className="flex items-center gap-2.5 px-6 h-20 border-b border-crm-border">
-          <div className="w-9 h-9 premium-gradient rounded-xl flex items-center justify-center text-white font-bold text-lg">B</div>
+          <div className="w-9 h-9 bg-black rounded-xl flex items-center justify-center shadow-sm">
+            <img src="/logo.png" alt="Bitzsol Logo" className="w-6 h-6 object-contain brightness-0 invert" />
+          </div>
           <div>
             <p className="text-base font-bold leading-tight text-crm-text-main">Bitzsol <span className="text-[#03D9AF]">CRM</span></p>
           </div>

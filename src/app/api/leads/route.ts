@@ -26,6 +26,7 @@ export async function GET(req: NextRequest) {
     if (search) {
       where.OR = [
         { firstName: { contains: search, mode: "insensitive" } },
+        { middleName: { contains: search, mode: "insensitive" } },
         { lastName: { contains: search, mode: "insensitive" } },
         { designation: { contains: search, mode: "insensitive" } },
       ];
@@ -58,7 +59,7 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
     const {
-      firstName, lastName, date, designation,
+      firstName, middleName, lastName, date, designation,
       leadSource, sourceLink, remarks, status,
       pipelineId, emails, phones, customFields,
     } = body;
@@ -76,6 +77,7 @@ export async function POST(req: NextRequest) {
     const lead = await prisma.lead.create({
       data: {
         firstName: firstName.trim(),
+        middleName: middleName?.trim() || null,
         lastName: lastName?.trim() || null,
         date: date ? new Date(date) : new Date(),
         designation: designation?.trim() || null,
@@ -114,7 +116,7 @@ export async function POST(req: NextRequest) {
     });
 
     // Fire Discord webhook
-    const fullName = [firstName, lastName].filter(Boolean).join(" ");
+    const fullName = [firstName, middleName, lastName].filter(Boolean).join(" ");
     sendDiscordNotification(formatDiscordLeadCreated(fullName, session.name, pipeline.name));
 
     return NextResponse.json({ data: lead, message: "Lead created." }, { status: 201 });

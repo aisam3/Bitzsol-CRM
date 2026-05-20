@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import type { AuthUser } from "@/types";
 
 interface Props {
@@ -68,7 +69,7 @@ export function AuthGate({ onAuth }: Props) {
         {/* Logo */}
         <div className="text-center mb-6">
           <div className="inline-flex items-center gap-2.5 mb-3">
-            <div className="w-12 h-12 premium-gradient rounded-xl flex items-center justify-center text-white font-bold text-2xl shadow-lg">B</div>
+            <img src="/logo.png" alt="Bitzsol Logo" className="w-12 h-12 object-contain brightness-0 invert" />
             <span className="text-2xl font-bold">Bitzsol <span className="text-[#03D9AF] font-black">CRM</span></span>
           </div>
           <p className="text-[#888d9f] text-xs mt-1">Lead Management Portal</p>

@@ -11,7 +11,7 @@ export async function GET() {
     if (session.role !== "admin") return NextResponse.json({ error: "Forbidden." }, { status: 403 });
 
     const users = await prisma.user.findMany({
-      select: { id: true, name: true, email: true, role: true, status: true, createdAt: true },
+      select: { id: true, name: true, email: true, role: true, status: true, createdAt: true, image: true },
       orderBy: { createdAt: "desc" },
     });
 
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
     if (!session) return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
     if (session.role !== "admin") return NextResponse.json({ error: "Forbidden." }, { status: 403 });
 
-    const { name, email, password, role } = await req.json();
+    const { name, email, password, role, image } = await req.json();
 
     if (!name || !email || !password) {
       return NextResponse.json({ error: "Name, email, and password are required." }, { status: 400 });
@@ -48,8 +48,9 @@ export async function POST(req: NextRequest) {
         password: hashedPassword,
         role: role === "admin" ? "admin" : "business_developer",
         status: "active",
+        image: image || null,
       },
-      select: { id: true, name: true, email: true, role: true, status: true, createdAt: true },
+      select: { id: true, name: true, email: true, role: true, status: true, createdAt: true, image: true },
     });
 
     return NextResponse.json({ data: user, message: "User created." }, { status: 201 });

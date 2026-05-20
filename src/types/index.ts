@@ -9,6 +9,7 @@ export interface AuthUser {
   email: string;
   role: Role;
   status: UserStatus;
+  image?: string;
 }
 
 export interface User {
@@ -18,6 +19,7 @@ export interface User {
   role: Role;
   status: UserStatus;
   createdAt: string;
+  image?: string | null;
 }
 
 export interface Pipeline {
@@ -51,6 +53,7 @@ export interface LeadCustomField {
 export interface Lead {
   id: string;
   firstName: string;
+  middleName?: string;
   lastName?: string;
   date: string;
   designation?: string;

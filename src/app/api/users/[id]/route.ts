@@ -14,7 +14,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
     const { id } = await params;
     const body = await req.json();
-    const { name, email, password, role, status } = body;
+    const { name, email, password, role, status, image } = body;
 
     const updateData: Record<string, unknown> = {};
     if (name) updateData.name = name.trim();
@@ -22,11 +22,12 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     if (role) updateData.role = role;
     if (status) updateData.status = status;
     if (password) updateData.password = await bcrypt.hash(password, 12);
+    if (image !== undefined) updateData.image = image;
 
     const user = await prisma.user.update({
       where: { id },
       data: updateData,
-      select: { id: true, name: true, email: true, role: true, status: true, createdAt: true },
+      select: { id: true, name: true, email: true, role: true, status: true, createdAt: true, image: true },
     });
 
     return NextResponse.json({ data: user, message: "User updated." });
