@@ -393,7 +393,7 @@ export function LeadModal({ pipelines, lead, onClose, onSaved }: Props) {
             <button type="button" onClick={onClose}
               className="px-5 py-2.5 rounded-xl bg-crm-panel-hover hover:bg-crm-panel border border-crm-border text-sm font-semibold transition-colors cursor-pointer">Cancel</button>
             <button type="submit" disabled={loading}
-              className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#0164DA] to-[#FB66BC] hover:opacity-90 text-white font-bold text-sm transition-all disabled:opacity-50 cursor-pointer">
+              className="px-6 py-2.5 rounded-xl bg-[#0164DA] hover:opacity-90 text-white font-bold text-sm transition-all disabled:opacity-50 cursor-pointer">
               {loading ? "Saving..." : isEdit ? "Update Lead" : "Create Lead"}
             </button>
           </div>

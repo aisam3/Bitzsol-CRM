@@ -10,6 +10,13 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
     }
 
+    if (session.id === "admin1234567") {
+      return NextResponse.json(
+        { error: "Hardcoded admin profile settings cannot be updated via the UI. Please update your environment variables (.env) instead." },
+        { status: 400 }
+      );
+    }
+
     const { name, email, currentPassword, newPassword, image } = await req.json();
 
     const user = await prisma.user.findUnique({ where: { id: session.id } });

@@ -204,7 +204,7 @@ export function UsersView() {
         </div>
         <button
           onClick={openCreate}
-          className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#0164DA] to-[#FB66BC] hover:opacity-90 text-white text-xs font-bold rounded-xl cursor-pointer shadow-lg transition-all"
+          className="flex items-center gap-2 px-4 py-2.5 bg-[#0164DA] hover:opacity-90 text-white text-xs font-bold rounded-xl cursor-pointer shadow-lg transition-all"
         >
           <Plus className="w-3.5 h-3.5" /> Add User
         </button>

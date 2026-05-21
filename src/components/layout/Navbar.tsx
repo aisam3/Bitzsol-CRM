@@ -11,7 +11,7 @@ export const Navbar = () => {
             B
           </div>
           <span className="text-xl font-bold tracking-tight text-foreground hidden sm:block">
-            Bitzsol <span className="text-primary font-black">CRM</span>
+            Bitzsol
           </span>
         </Link>
 

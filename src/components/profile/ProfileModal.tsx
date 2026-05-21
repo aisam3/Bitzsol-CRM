@@ -284,7 +284,7 @@ export function ProfileModal({ user, onClose, onSaved }: Props) {
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-[#0164DA] to-[#FB66BC] hover:opacity-90 text-white text-xs font-bold disabled:opacity-50 cursor-pointer transition-all shadow-lg shadow-[#0164DA]/20"
+              className="flex-1 py-2.5 rounded-xl bg-[#0164DA] hover:opacity-90 text-white text-xs font-bold disabled:opacity-50 cursor-pointer transition-all shadow-lg shadow-[#0164DA]/20"
             >
               {loading ? "Saving..." : "Save Changes"}
             </button>

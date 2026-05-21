@@ -68,7 +68,7 @@ export default function App() {
       <div className="min-h-screen bg-crm-bg flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 premium-gradient rounded-2xl flex items-center justify-center text-white font-black text-xl animate-pulse">B</div>
-          <p className="text-crm-text-sub text-sm font-semibold">Loading Bitzsol CRM...</p>
+          <p className="text-crm-text-sub text-sm font-semibold">Loading Bitzsol...</p>
         </div>
       </div>
     );

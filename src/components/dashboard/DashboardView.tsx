@@ -72,7 +72,7 @@ export function DashboardView({ user, stats, leads, pipelines, onLeadCreated }: 
 
           <button
             onClick={() => setShowCreateLead(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#0164DA] to-[#FB66BC] hover:opacity-90 text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-lg shadow-[#0164DA]/20 whitespace-nowrap"
+            className="flex items-center gap-2 px-4 py-2 bg-[#0164DA] hover:opacity-90 text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-lg shadow-[#0164DA]/20 whitespace-nowrap"
           >
             <Plus className="w-3.5 h-3.5" /> Add Lead
           </button>
