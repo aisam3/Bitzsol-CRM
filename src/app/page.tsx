@@ -30,11 +30,9 @@ export default function App() {
     fetch("/api/auth/session")
       .then((r) => r.json())
       .then((res) => {
-        if (res.data) setUser(res.data);
+        if (res?.data) setUser(res.data);
       })
-      .catch(() => {
-        // Network failure — leave user as null, show auth gate
-      })
+      .catch(() => {})
       .finally(() => setSessionLoading(false));
   }, []);
 
@@ -47,7 +45,7 @@ export default function App() {
   async function fetchAll() {
     const [statsRes, leadsRes, pipelinesRes] = await Promise.all([
       fetch("/api/dashboard").then((r) => r.json()),
-      fetch("/api/leads").then((r) => r.json()),
+      fetch("/api/leads?limit=6").then((r) => r.json()),
       fetch("/api/pipelines").then((r) => r.json()),
     ]);
     if (statsRes.data) setStats(statsRes.data);

@@ -12,8 +12,15 @@ interface Props {
   onRefresh: () => void;
 }
 
-export function LeadsView({ user, leads, pipelines, onRefresh }: Props) {
+export function LeadsView({ user, leads: initialLeads, pipelines, onRefresh }: Props) {
+  // Local list & pagination stats
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [totalLeads, setTotalLeads] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(true);
+
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [pipelineFilter, setPipelineFilter] = useState("All");
   const [showCreate, setShowCreate] = useState(false);
@@ -29,7 +36,7 @@ export function LeadsView({ user, leads, pipelines, onRefresh }: Props) {
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const itemsPerPage = 10;
 
   // Toggle Columns State
   const [showColToggle, setShowColToggle] = useState(false);
@@ -40,55 +47,72 @@ export function LeadsView({ user, leads, pipelines, onRefresh }: Props) {
     emails: true,
     createdBy: true,
   });
+  const [colSearch, setColSearch] = useState("");
+  const [pipelineSearch, setPipelineSearch] = useState("");
 
   const allStatuses = ["All", "New", "Contacted", "Qualified", "Proposal Sent", "Negotiation", "Closed", "Lost"];
   const selectedPipelineName = pipelineFilter === "All"
     ? "All Pipelines"
     : pipelines.find(p => p.id === pipelineFilter)?.name ?? "Unknown Pipeline";
 
+  // Debounce search query
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [search]);
+
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [search, statusFilter, pipelineFilter]);
+  }, [debouncedSearch, statusFilter, pipelineFilter]);
 
-  const filtered = leads.filter((l) => {
-    const matchSearch =
-      !search ||
-      [l.firstName, l.middleName, l.lastName].filter(Boolean).join(" ").toLowerCase().includes(search.toLowerCase()) ||
-      l.designation?.toLowerCase().includes(search.toLowerCase());
-    const matchStatus = statusFilter === "All" || l.status === statusFilter;
-    const matchPipeline = pipelineFilter === "All" || l.pipelineId === pipelineFilter;
-    return matchSearch && matchStatus && matchPipeline;
-  });
+  // Dynamic leads fetching
+  async function fetchLeads() {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: itemsPerPage.toString(),
+        sortField,
+        sortOrder,
+      });
+      if (debouncedSearch.trim()) {
+        params.append("search", debouncedSearch.trim());
+      }
+      if (statusFilter && statusFilter !== "All") {
+        params.append("status", statusFilter);
+      }
+      if (pipelineFilter && pipelineFilter !== "All") {
+        params.append("pipelineId", pipelineFilter);
+      }
 
-  // Sort Logic
-  const sorted = [...filtered].sort((a, b) => {
-    let valA: any = "";
-    let valB: any = "";
-
-    if (sortField === "name") {
-      valA = [a.firstName, a.middleName, a.lastName].filter(Boolean).join(" ").toLowerCase();
-      valB = [b.firstName, b.middleName, b.lastName].filter(Boolean).join(" ").toLowerCase();
-    } else if (sortField === "date") {
-      valA = new Date(a.date).getTime();
-      valB = new Date(b.date).getTime();
-    } else if (sortField === "status") {
-      valA = a.status.toLowerCase();
-      valB = b.status.toLowerCase();
-    } else if (sortField === "source") {
-      valA = a.leadSource.toLowerCase();
-      valB = b.leadSource.toLowerCase();
+      const res = await fetch(`/api/leads?${params.toString()}`);
+      const result = await res.json();
+      if (result.data) {
+        setLeads(result.data);
+        if (result.pagination) {
+          setTotalPages(result.pagination.totalPages);
+          setTotalLeads(result.pagination.total);
+        } else {
+          setTotalPages(1);
+          setTotalLeads(result.data.length);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to fetch leads:", err);
+    } finally {
+      setLoading(false);
     }
+  }
 
-    if (valA < valB) return sortOrder === "asc" ? -1 : 1;
-    if (valA > valB) return sortOrder === "asc" ? 1 : -1;
-    return 0;
-  });
+  // Trigger fetch when parameters or page change
+  useEffect(() => {
+    fetchLeads();
+  }, [currentPage, debouncedSearch, statusFilter, pipelineFilter, sortField, sortOrder]);
 
-  // Paginated Logic
-  const totalPages = Math.ceil(sorted.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedLeads = sorted.slice(startIndex, startIndex + itemsPerPage);
 
   function handleSort(field: typeof sortField) {
     if (sortField === field) {
@@ -104,6 +128,7 @@ export function LeadsView({ user, leads, pipelines, onRefresh }: Props) {
     await fetch(`/api/leads/${id}`, { method: "DELETE" });
     setDeleteId(null);
     setDeleting(false);
+    fetchLeads();
     onRefresh();
   }
 
@@ -113,6 +138,7 @@ export function LeadsView({ user, leads, pipelines, onRefresh }: Props) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status: newStatus }),
     });
+    fetchLeads();
     onRefresh();
   }
 
@@ -125,7 +151,7 @@ export function LeadsView({ user, leads, pipelines, onRefresh }: Props) {
         <div>
           <h3 className="text-lg font-bold text-crm-text-main">Leads</h3>
           <p className="text-xs text-crm-text-sub">
-            {user?.role === "business_developer" ? "Your leads" : "All CRM leads"} · {filtered.length} result{filtered.length !== 1 ? "s" : ""}
+            {user?.role === "business_developer" ? "Your leads" : "All CRM leads"} · {totalLeads} result{totalLeads !== 1 ? "s" : ""}
           </p>
         </div>
         <button onClick={() => setShowCreate(true)}
@@ -154,6 +180,8 @@ export function LeadsView({ user, leads, pipelines, onRefresh }: Props) {
               setShowStatusDropdown(!showStatusDropdown);
               setShowPipelineDropdown(false);
               setShowColToggle(false);
+              setColSearch("");
+              setPipelineSearch("");
             }}
             className="flex items-center gap-2 px-4 py-2.5 bg-crm-panel border border-crm-border hover:bg-crm-panel-hover text-crm-text-main text-xs font-semibold rounded-xl cursor-pointer transition-colors"
           >
@@ -197,6 +225,7 @@ export function LeadsView({ user, leads, pipelines, onRefresh }: Props) {
               setShowPipelineDropdown(!showPipelineDropdown);
               setShowStatusDropdown(false);
               setShowColToggle(false);
+              setPipelineSearch("");
             }}
             className="flex items-center gap-2 px-4 py-2.5 bg-crm-panel border border-crm-border hover:bg-crm-panel-hover text-crm-text-main text-xs font-semibold rounded-xl cursor-pointer transition-colors"
           >
@@ -205,39 +234,58 @@ export function LeadsView({ user, leads, pipelines, onRefresh }: Props) {
           </button>
           {showPipelineDropdown && (
             <>
-              <div className="fixed inset-0 z-30" onClick={() => setShowPipelineDropdown(false)} />
-              <div className="absolute left-0 sm:right-0 sm:left-auto mt-2 w-52 bg-crm-panel border border-crm-border rounded-xl shadow-xl p-1.5 z-40 animate-in fade-in slide-in-from-top-2 duration-150">
+              <div className="fixed inset-0 z-30" onClick={() => { setShowPipelineDropdown(false); setPipelineSearch(""); }} />
+              <div className="absolute left-0 sm:right-0 sm:left-auto mt-2 w-52 bg-crm-panel border border-crm-border rounded-xl shadow-xl p-2 z-40 animate-in fade-in slide-in-from-top-2 duration-150 flex flex-col">
                 <p className="text-[9px] font-bold text-crm-text-sub uppercase tracking-wider px-3 py-1.5 mb-1">
                   Filter by Pipeline
                 </p>
-                <div className="space-y-0.5 max-h-60 overflow-y-auto">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setPipelineFilter("All");
-                      setShowPipelineDropdown(false);
-                    }}
-                    className={`w-full text-left px-3 py-2 text-xs font-semibold rounded-lg hover:bg-crm-panel-hover transition-colors cursor-pointer ${
-                      pipelineFilter === "All" ? "text-[#0164DA] bg-[#0164DA]/10" : "text-crm-text-main"
-                    }`}
-                  >
-                    All Pipelines
-                  </button>
-                  {pipelines.map((p) => (
+                <div className="px-3 pb-2">
+                  <div className="relative">
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-crm-text-sub" />
+                    <input
+                      type="text"
+                      value={pipelineSearch}
+                      onChange={(e) => setPipelineSearch(e.target.value)}
+                      placeholder="Search pipelines..."
+                      className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-crm-input-bg border border-crm-border text-crm-text-main text-xs focus:outline-none focus:border-[#0164DA] placeholder-crm-text-sub/50"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-0.5 max-h-60 overflow-y-auto p-1">
+                  {"all pipelines".includes(pipelineSearch.toLowerCase()) && (
                     <button
-                      key={p.id}
                       type="button"
                       onClick={() => {
-                        setPipelineFilter(p.id);
+                        setPipelineFilter("All");
                         setShowPipelineDropdown(false);
+                        setPipelineSearch("");
                       }}
                       className={`w-full text-left px-3 py-2 text-xs font-semibold rounded-lg hover:bg-crm-panel-hover transition-colors cursor-pointer ${
-                        pipelineFilter === p.id ? "text-[#0164DA] bg-[#0164DA]/10" : "text-crm-text-main"
+                        pipelineFilter === "All" ? "text-[#0164DA] bg-[#0164DA]/10" : "text-crm-text-main"
                       }`}
                     >
-                      {p.name}
+                      All Pipelines
                     </button>
-                  ))}
+                  )}
+                  {pipelines
+                    .filter((p) => p.name.toLowerCase().includes(pipelineSearch.toLowerCase()))
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .map((p) => (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => {
+                          setPipelineFilter(p.id);
+                          setShowPipelineDropdown(false);
+                          setPipelineSearch("");
+                        }}
+                        className={`w-full text-left px-3 py-2 text-xs font-semibold rounded-lg hover:bg-crm-panel-hover transition-colors cursor-pointer ${
+                          pipelineFilter === p.id ? "text-[#0164DA] bg-[#0164DA]/10" : "text-crm-text-main"
+                        }`}
+                      >
+                        {p.name}
+                      </button>
+                    ))}
                 </div>
               </div>
             </>
@@ -252,6 +300,7 @@ export function LeadsView({ user, leads, pipelines, onRefresh }: Props) {
               setShowColToggle(!showColToggle);
               setShowStatusDropdown(false);
               setShowPipelineDropdown(false);
+              setColSearch("");
             }}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-crm-panel border border-crm-border text-crm-text-main text-xs font-semibold hover:bg-crm-panel-hover transition-colors cursor-pointer"
           >
@@ -260,24 +309,43 @@ export function LeadsView({ user, leads, pipelines, onRefresh }: Props) {
           </button>
           {showColToggle && (
             <>
-              <div className="fixed inset-0 z-30" onClick={() => setShowColToggle(false)} />
-              <div className="absolute right-0 mt-2 w-48 bg-crm-panel border border-crm-border rounded-xl shadow-xl p-3.5 z-40 animate-in fade-in slide-in-from-top-2 duration-150 space-y-2">
-                <p className="text-[10px] font-bold text-crm-text-sub uppercase tracking-wider mb-2">Show Columns</p>
-                <div className="space-y-2">
-                  {Object.keys(visibleCols).map((col) => (
-                    <label key={col} className="flex items-center gap-2.5 text-xs font-semibold cursor-pointer text-crm-text-main hover:text-[#0164DA] select-none">
-                      <input
-                        type="checkbox"
-                        checked={visibleCols[col as keyof typeof visibleCols]}
-                        onChange={() => setVisibleCols({
-                          ...visibleCols,
-                          [col]: !visibleCols[col as keyof typeof visibleCols]
-                        })}
-                        className="rounded bg-crm-input-bg border-crm-border text-[#0164DA] focus:ring-0 w-4 h-4 cursor-pointer"
-                      />
-                      <span>{col === "createdBy" ? "Created By" : col.charAt(0).toUpperCase() + col.slice(1)}</span>
-                    </label>
-                  ))}
+              <div className="fixed inset-0 z-30" onClick={() => { setShowColToggle(false); setColSearch(""); }} />
+              <div className="absolute right-0 mt-2 w-48 bg-crm-panel border border-crm-border rounded-xl shadow-xl p-3 z-40 animate-in fade-in slide-in-from-top-2 duration-150 space-y-2 flex flex-col">
+                <p className="text-[10px] font-bold text-crm-text-sub uppercase tracking-wider px-3 pt-1">Show Columns</p>
+                <div className="px-3">
+                  <div className="relative">
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-crm-text-sub" />
+                    <input
+                      type="text"
+                      value={colSearch}
+                      onChange={(e) => setColSearch(e.target.value)}
+                      placeholder="Search columns..."
+                      className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-crm-input-bg border border-crm-border text-crm-text-main text-xs focus:outline-none focus:border-[#0164DA] placeholder-crm-text-sub/50"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2 px-3 pb-2 max-h-60 overflow-y-auto">
+                  {Object.keys(visibleCols)
+                    .map((col) => ({
+                      key: col,
+                      name: col === "createdBy" ? "Created By" : col.charAt(0).toUpperCase() + col.slice(1)
+                    }))
+                    .filter((col) => col.name.toLowerCase().includes(colSearch.toLowerCase()))
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .map((col) => (
+                      <label key={col.key} className="flex items-center gap-2.5 text-xs font-semibold cursor-pointer text-crm-text-main hover:text-[#0164DA] select-none">
+                        <input
+                          type="checkbox"
+                          checked={visibleCols[col.key as keyof typeof visibleCols]}
+                          onChange={() => setVisibleCols({
+                            ...visibleCols,
+                            [col.key]: !visibleCols[col.key as keyof typeof visibleCols]
+                          })}
+                          className="rounded bg-crm-input-bg border-crm-border text-[#0164DA] focus:ring-0 w-4 h-4 cursor-pointer"
+                        />
+                        <span>{col.name}</span>
+                      </label>
+                    ))}
                 </div>
               </div>
             </>
@@ -286,8 +354,17 @@ export function LeadsView({ user, leads, pipelines, onRefresh }: Props) {
       </div>
 
       {/* Table */}
-      <div className="bg-crm-panel border border-crm-border rounded-3xl overflow-hidden shadow-sm">
-        {sorted.length === 0 ? (
+      <div className="glass rounded-2xl overflow-hidden shadow-md border border-crm-border/30 relative">
+        {loading && (
+          <div className="absolute inset-0 bg-crm-bg/40 backdrop-blur-[2px] flex items-center justify-center z-10 transition-all">
+            <div className="flex flex-col items-center gap-2 bg-crm-panel/90 border border-crm-border/60 px-5 py-3 rounded-2xl shadow-xl">
+              <div className="w-6 h-6 rounded-full border-2 border-t-[#0164DA] border-crm-border animate-spin" />
+              <p className="text-[10px] text-crm-text-sub font-bold uppercase tracking-wider">Updating Leads...</p>
+            </div>
+          </div>
+        )}
+
+        {leads.length === 0 ? (
           <div className="text-center py-16">
             <p className="text-sm font-bold text-crm-text-main mb-1">No leads found</p>
             <p className="text-xs text-crm-text-sub">Try adjusting your filters or create a new lead.</p>
@@ -332,7 +409,7 @@ export function LeadsView({ user, leads, pipelines, onRefresh }: Props) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-crm-border/40">
-                {paginatedLeads.map((lead) => (
+                {leads.map((lead) => (
                   <tr key={lead.id} className="group hover:bg-crm-panel-hover/30 transition-colors">
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-3">
@@ -359,7 +436,7 @@ export function LeadsView({ user, leads, pipelines, onRefresh }: Props) {
                         <select
                           value={lead.status}
                           onChange={(e) => handleStatusChange(lead, e.target.value)}
-                          className="text-[10px] font-bold px-2 py-1 rounded-lg bg-crm-panel-hover border border-crm-border text-crm-text-main focus:outline-none focus:border-[#0164DA] cursor-pointer"
+                          className="text-[10px] font-bold px-2 py-1 rounded-lg bg-crm-panel-hover border border-crm-border text-crm-text-main focus:outline-none focus:border-[#0164DA] cursor-pointer animate-in fade-in duration-200"
                         >
                           {statuses2.map((s) => <option key={s}>{s}</option>)}
                         </select>
@@ -408,7 +485,7 @@ export function LeadsView({ user, leads, pipelines, onRefresh }: Props) {
             {totalPages > 1 && (
               <div className="flex items-center justify-between px-5 py-4 border-t border-crm-border bg-crm-panel-hover/10">
                 <span className="text-xs text-crm-text-sub">
-                  Showing <span className="font-bold text-crm-text-main">{startIndex + 1}</span> to <span className="font-bold text-crm-text-main">{Math.min(startIndex + itemsPerPage, sorted.length)}</span> of <span className="font-bold text-crm-text-main">{sorted.length}</span> leads
+                  Showing <span className="font-bold text-crm-text-main">{startIndex + 1}</span> to <span className="font-bold text-crm-text-main">{Math.min(startIndex + itemsPerPage, totalLeads)}</span> of <span className="font-bold text-crm-text-main">{totalLeads}</span> leads
                 </span>
                 <div className="flex items-center gap-2">
                   <button
@@ -461,8 +538,8 @@ export function LeadsView({ user, leads, pipelines, onRefresh }: Props) {
         </div>
       )}
 
-      {showCreate && <LeadModal pipelines={pipelines} onClose={() => setShowCreate(false)} onSaved={() => { setShowCreate(false); onRefresh(); }} />}
-      {editLead && <LeadModal pipelines={pipelines} lead={editLead} onClose={() => setEditLead(null)} onSaved={() => { setEditLead(null); onRefresh(); }} />}
+      {showCreate && <LeadModal pipelines={pipelines} onClose={() => setShowCreate(false)} onSaved={() => { setShowCreate(false); fetchLeads(); onRefresh(); }} />}
+      {editLead && <LeadModal pipelines={pipelines} lead={editLead} onClose={() => setEditLead(null)} onSaved={() => { setEditLead(null); fetchLeads(); onRefresh(); }} />}
     </div>
   );
 }

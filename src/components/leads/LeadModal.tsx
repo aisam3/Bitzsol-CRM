@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { X, Plus, Trash2 } from "lucide-react";
+import { X, Plus, Trash2, Mail, Phone, AlertCircle, Link } from "lucide-react";
 import type { Pipeline, Lead } from "@/types";
 
 interface Props {
@@ -129,276 +129,401 @@ export function LeadModal({ pipelines, lead, onClose, onSaved }: Props) {
     }
   }
 
-  const inputCls = "w-full px-3 py-2.5 rounded-xl bg-crm-input-bg border border-crm-border text-crm-text-main focus:outline-none focus:border-[#0164DA] text-sm";
-  const labelCls = "block text-[10px] font-bold text-crm-text-sub uppercase tracking-wider mb-1.5";
+  const inputCls = "w-full px-3 py-2 rounded-xl bg-crm-input-bg border border-crm-border text-crm-text-main focus:outline-none focus:border-[#0164DA] focus:ring-1 focus:ring-[#0164DA]/40 text-sm transition-all placeholder-crm-text-sub/50 shadow-sm";
+  const labelCls = "block text-xs font-bold text-[#0164DA] uppercase tracking-wider mb-1";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-crm-panel rounded-2xl sm:rounded-[2rem] border border-crm-border shadow-2xl text-crm-text-main">
-        <div className="flex items-center justify-between p-5 sm:p-6 border-b border-crm-border sticky top-0 bg-crm-panel z-10">
-          <div className="flex items-center gap-2">
-            <div className="p-2 bg-[#0164DA]/10 text-[#0164DA] rounded-xl"><Plus className="w-5 h-5" /></div>
-            <h3 className="text-base sm:text-lg font-bold">{isEdit ? "Edit Lead" : "Add New Lead"}</h3>
+    <div className="fixed inset-0 z-50 bg-crm-bg/95 backdrop-blur-md flex flex-col h-screen w-screen overflow-hidden text-crm-text-main animate-in fade-in duration-200">
+      <form onSubmit={handleSubmit} className="flex flex-col h-full w-full overflow-hidden justify-between">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-3 border-b border-crm-border bg-crm-panel/40 backdrop-blur-sm flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-[#0164DA]/10 border border-[#0164DA]/30 text-[#0164DA] rounded-xl">
+              <Plus className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-sm sm:text-base font-bold uppercase tracking-wider text-crm-text-main">
+                {isEdit ? "Modify Lead Details" : "Create New Lead"}
+              </h3>
+              <p className="text-[10px] text-crm-text-sub uppercase tracking-widest mt-0.5">
+                {isEdit ? `Editing Lead Profile: ${firstName} ${lastName}` : "Add a new lead to your business development pipeline"}
+              </p>
+            </div>
           </div>
-          <button onClick={onClose} className="w-9 h-9 rounded-xl bg-crm-panel-hover hover:bg-crm-panel border border-crm-border flex items-center justify-center cursor-pointer">
-            <X className="w-5 h-5 text-crm-text-main" />
+          <button 
+            type="button"
+            onClick={onClose} 
+            className="w-10 h-10 rounded-xl bg-crm-panel-hover hover:bg-crm-panel border border-crm-border flex items-center justify-center cursor-pointer transition-colors"
+          >
+            <X className="w-5 h-5 text-crm-text-main hover:opacity-80" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-5">
-          {error && <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-3 rounded-xl text-xs">{error}</div>}
-
-          {/* Name row */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div>
-              <label className={labelCls}>First Name *</label>
-              <input type="text" required value={firstName} onChange={(e) => setFirstName(e.target.value)} className={inputCls} placeholder="John" />
-            </div>
-            <div>
-              <label className={labelCls}>Middle Name</label>
-              <input type="text" value={middleName} onChange={(e) => setMiddleName(e.target.value)} className={inputCls} placeholder="e.g. William" />
-            </div>
-            <div>
-              <label className={labelCls}>Last Name</label>
-              <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} className={inputCls} placeholder="Doe" />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className={labelCls}>Designation</label>
-              <input type="text" value={designation} onChange={(e) => setDesignation(e.target.value)} className={inputCls} placeholder="e.g. CEO" />
-            </div>
-            <div>
-              <label className={labelCls}>Pipeline *</label>
-              <select value={pipelineId} onChange={(e) => setPipelineId(e.target.value)} className={inputCls} required>
-                <option value="">Select pipeline...</option>
-                {pipelines.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-              </select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="text-[10px] font-bold text-crm-text-sub uppercase tracking-wider">Status</label>
-                {!showNewStatusInput && (
-                  <button
-                    type="button"
-                    onClick={() => setShowNewStatusInput(true)}
-                    className="text-[10px] text-[#03D9AF] hover:underline cursor-pointer font-bold"
-                  >
-                    + Add Custom
-                  </button>
-                )}
+        {/* Content Body: Single Card with Balanced Grid Layout (Fits exactly on one screen, no scrollbar) */}
+        <div className="flex-1 p-6 bg-crm-bg/50 flex flex-col justify-center items-center overflow-hidden">
+          <div className="w-full max-w-6xl bg-crm-panel/40 border border-crm-border/60 glass p-6 rounded-2xl shadow-2xl flex flex-col md:flex-row gap-6 overflow-hidden">
+            
+            {/* Left Side: General Profile & Remarks */}
+            <div className="flex-1 flex flex-col space-y-4">
+              
+              {/* Names */}
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className={labelCls}>First Name *</label>
+                  <input type="text" required value={firstName} onChange={(e) => setFirstName(e.target.value)} className={inputCls} placeholder="John" />
+                </div>
+                <div>
+                  <label className={labelCls}>Middle Name</label>
+                  <input type="text" value={middleName} onChange={(e) => setMiddleName(e.target.value)} className={inputCls} placeholder="e.g. William" />
+                </div>
+                <div>
+                  <label className={labelCls}>Last Name</label>
+                  <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} className={inputCls} placeholder="Doe" />
+                </div>
               </div>
-              {showNewStatusInput ? (
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={newStatusInput}
-                    onChange={(e) => setNewStatusInput(e.target.value)}
-                    placeholder="New Status"
-                    className="w-full px-3 py-2 rounded-xl bg-crm-input-bg border border-crm-border text-crm-text-main text-xs focus:outline-none focus:border-[#0164DA]"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleAddStatus}
-                    className="px-3 py-2 bg-[#03D9AF]/15 text-[#03D9AF] border border-[#03D9AF]/30 rounded-xl text-xs font-bold hover:bg-[#03D9AF]/25 cursor-pointer transition-colors"
+
+              {/* Designation & Pipeline */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={labelCls}>Designation</label>
+                  <input type="text" value={designation} onChange={(e) => setDesignation(e.target.value)} className={inputCls} placeholder="e.g. CEO" />
+                </div>
+                <div>
+                  <label className={labelCls}>Pipeline *</label>
+                  <select value={pipelineId} onChange={(e) => setPipelineId(e.target.value)} className={inputCls} required>
+                    <option value="">Select pipeline...</option>
+                    {pipelines.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              {/* Status & Lead Source */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className={labelCls}>Status</label>
+                    {!showNewStatusInput && (
+                      <button
+                        type="button"
+                        onClick={() => setShowNewStatusInput(true)}
+                        className="text-[10px] text-[#03D9AF] hover:underline cursor-pointer font-bold uppercase tracking-wider"
+                      >
+                        + Add Custom
+                      </button>
+                    )}
+                  </div>
+                  {showNewStatusInput ? (
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={newStatusInput}
+                        onChange={(e) => setNewStatusInput(e.target.value)}
+                        placeholder="New Status"
+                        className={inputCls}
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddStatus}
+                        className="px-2.5 py-1 bg-[#03D9AF]/15 text-[#03D9AF] border border-[#03D9AF]/30 rounded-lg text-xs font-bold hover:bg-[#03D9AF]/25 cursor-pointer transition-colors"
+                      >
+                        Save
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setShowNewStatusInput(false); setNewStatusInput(""); }}
+                        className="px-2.5 py-1 bg-crm-panel-hover border border-crm-border rounded-lg text-xs text-crm-text-sub hover:text-crm-text-main cursor-pointer transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <select value={status} onChange={(e) => setStatus(e.target.value)} className={inputCls}>
+                      {customStatuses.map((s) => <option key={s}>{s}</option>)}
+                    </select>
+                  )}
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className={labelCls}>Lead Source</label>
+                    {!showNewSourceInput && (
+                      <button
+                        type="button"
+                        onClick={() => setShowNewSourceInput(true)}
+                        className="text-[10px] text-[#03D9AF] hover:underline cursor-pointer font-bold uppercase tracking-wider"
+                      >
+                        + Add Custom
+                      </button>
+                    )}
+                  </div>
+                  {showNewSourceInput ? (
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={newSourceInput}
+                        onChange={(e) => setNewSourceInput(e.target.value)}
+                        placeholder="New Source"
+                        className={inputCls}
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddSource}
+                        className="px-2.5 py-1 bg-[#03D9AF]/15 text-[#03D9AF] border border-[#03D9AF]/30 rounded-lg text-xs font-bold hover:bg-[#03D9AF]/25 cursor-pointer transition-colors"
+                      >
+                        Save
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setShowNewSourceInput(false); setNewSourceInput(""); }}
+                        className="px-2.5 py-1 bg-crm-panel-hover border border-crm-border rounded-lg text-xs text-crm-text-sub hover:text-crm-text-main cursor-pointer transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <select value={leadSource} onChange={(e) => setLeadSource(e.target.value)} className={inputCls}>
+                      {customSources.map((s) => <option key={s}>{s}</option>)}
+                    </select>
+                  )}
+                </div>
+              </div>
+
+              {/* Source Link */}
+              <div>
+                <label className={labelCls}>Source Link</label>
+                <div className="relative">
+                  <Link className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-crm-text-sub" />
+                  <input type="url" value={sourceLink} onChange={(e) => setSourceLink(e.target.value)} className={`${inputCls} pl-10`} placeholder="https://..." />
+                </div>
+              </div>
+
+              {/* Remarks Section */}
+              <div className="space-y-1 flex flex-col">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-[#0164DA] uppercase tracking-wider">Remarks / Notes</label>
+                  <div className="flex items-center bg-crm-panel border border-crm-border p-0.5 rounded-lg overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={() => insertFormatting("**", "**")}
+                      className="px-2 py-0.5 text-xs font-bold hover:bg-crm-panel-hover text-crm-text-main cursor-pointer border-r border-crm-border"
+                      title="Bold"
+                    >
+                      B
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertFormatting("*", "*")}
+                      className="px-2 py-0.5 text-xs italic hover:bg-crm-panel-hover text-crm-text-main cursor-pointer border-r border-crm-border"
+                      title="Italic"
+                    >
+                      I
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertFormatting("- ")}
+                      className="px-1.5 py-0.5 text-xs hover:bg-crm-panel-hover text-crm-text-main cursor-pointer border-r border-crm-border"
+                      title="Bullet List"
+                    >
+                      • List
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertFormatting("1. ")}
+                      className="px-1.5 py-0.5 text-xs hover:bg-crm-panel-hover text-crm-text-main cursor-pointer"
+                      title="Numbered List"
+                    >
+                      1. List
+                    </button>
+                  </div>
+                </div>
+                <textarea
+                  id="remarks-textarea"
+                  value={remarks}
+                  onChange={(e) => setRemarks(e.target.value)}
+                  className={`${inputCls} resize-none h-20`}
+                  placeholder="Enter detailed client requirements, notes, context..."
+                />
+              </div>
+
+            </div>
+
+            {/* Right Side: Communication Channels & Custom Fields */}
+            <div className="flex-1 flex flex-col space-y-4">
+              
+              {/* Emails Section */}
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-[#0164DA] uppercase tracking-wider">Email Addresses</span>
+                  <button 
+                    type="button" 
+                    onClick={() => setEmails([...emails, { email: "", status: "Not_Verified" }])}
+                    className="flex items-center gap-1 text-xs text-[#03D9AF] hover:underline cursor-pointer font-bold uppercase tracking-wider"
                   >
-                    Save
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { setShowNewStatusInput(false); setNewStatusInput(""); }}
-                    className="px-3 py-2 bg-crm-panel-hover border border-crm-border rounded-xl text-xs text-crm-text-sub hover:text-crm-text-main cursor-pointer transition-colors"
-                  >
-                    Cancel
+                    <Plus className="w-3.5 h-3.5" /> Add Email
                   </button>
                 </div>
-              ) : (
-                <select value={status} onChange={(e) => setStatus(e.target.value)} className={inputCls}>
-                  {customStatuses.map((s) => <option key={s}>{s}</option>)}
-                </select>
-              )}
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="text-[10px] font-bold text-crm-text-sub uppercase tracking-wider">Lead Source</label>
-                {!showNewSourceInput && (
-                  <button
-                    type="button"
-                    onClick={() => setShowNewSourceInput(true)}
-                    className="text-[10px] text-[#03D9AF] hover:underline cursor-pointer font-bold"
-                  >
-                    + Add Custom
-                  </button>
-                )}
+                <div className="space-y-2 max-h-24 overflow-y-auto pr-1">
+                  {emails.map((e, i) => (
+                    <div key={i} className="flex gap-2 items-center">
+                      <div className="relative flex-1">
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-crm-text-sub" />
+                        <input 
+                          type="email" 
+                          value={e.email} 
+                          onChange={(ev) => { const n = [...emails]; n[i].email = ev.target.value; setEmails(n); }}
+                          className={`${inputCls} pl-10`} 
+                          placeholder="email@example.com" 
+                        />
+                      </div>
+                      <select 
+                        value={e.status} 
+                        onChange={(ev) => { const n = [...emails]; n[i].status = ev.target.value; setEmails(n); }}
+                        className="px-2 py-1.5 rounded-xl bg-crm-input-bg border border-crm-border text-crm-text-main text-sm focus:outline-none focus:border-[#0164DA]"
+                      >
+                        <option value="Not_Verified">Not Verified</option>
+                        <option value="Verified">Verified</option>
+                      </select>
+                      {emails.length > 1 && (
+                        <button 
+                          type="button" 
+                          onClick={() => setEmails(emails.filter((_, j) => j !== i))}
+                          className="p-1.5 text-red-400 hover:text-red-300 cursor-pointer hover:bg-red-500/10 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
-              {showNewSourceInput ? (
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={newSourceInput}
-                    onChange={(e) => setNewSourceInput(e.target.value)}
-                    placeholder="New Source"
-                    className="w-full px-3 py-2 rounded-xl bg-crm-input-bg border border-crm-border text-crm-text-main text-xs focus:outline-none focus:border-[#0164DA]"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleAddSource}
-                    className="px-3 py-2 bg-[#03D9AF]/15 text-[#03D9AF] border border-[#03D9AF]/30 rounded-xl text-xs font-bold hover:bg-[#03D9AF]/25 cursor-pointer transition-colors"
+
+              {/* Phone Numbers Section */}
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-[#0164DA] uppercase tracking-wider">Phone Numbers</span>
+                  <button 
+                    type="button" 
+                    onClick={() => setPhones([...phones, { phone: "", status: "Not_Verified" }])}
+                    className="flex items-center gap-1 text-xs text-[#03D9AF] hover:underline cursor-pointer font-bold uppercase tracking-wider"
                   >
-                    Save
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { setShowNewSourceInput(false); setNewSourceInput(""); }}
-                    className="px-3 py-2 bg-crm-panel-hover border border-crm-border rounded-xl text-xs text-crm-text-sub hover:text-crm-text-main cursor-pointer transition-colors"
-                  >
-                    Cancel
+                    <Plus className="w-3.5 h-3.5" /> Add Phone
                   </button>
                 </div>
-              ) : (
-                <select value={leadSource} onChange={(e) => setLeadSource(e.target.value)} className={inputCls}>
-                  {customSources.map((s) => <option key={s}>{s}</option>)}
-                </select>
-              )}
-            </div>
-          </div>
-
-          <div>
-            <label className={labelCls}>Source Link</label>
-            <input type="url" value={sourceLink} onChange={(e) => setSourceLink(e.target.value)} className={inputCls} placeholder="https://..." />
-          </div>
-
-          {/* Emails */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className={labelCls}>Email Addresses</label>
-              <button type="button" onClick={() => setEmails([...emails, { email: "", status: "Not_Verified" }])}
-                className="text-[10px] text-[#03D9AF] hover:underline cursor-pointer">+ Add Email</button>
-            </div>
-            {emails.map((e, i) => (
-              <div key={i} className="flex gap-2 mb-2">
-                <input type="email" value={e.email} onChange={(ev) => { const n = [...emails]; n[i].email = ev.target.value; setEmails(n); }}
-                  className={`${inputCls} flex-1`} placeholder="email@example.com" />
-                <select value={e.status} onChange={(ev) => { const n = [...emails]; n[i].status = ev.target.value; setEmails(n); }}
-                  className="px-3 py-2.5 rounded-xl bg-crm-input-bg border border-crm-border text-crm-text-main text-xs focus:outline-none focus:border-[#0164DA]">
-                  <option value="Not_Verified">Not Verified</option>
-                  <option value="Verified">Verified</option>
-                </select>
-                {emails.length > 1 && (
-                  <button type="button" onClick={() => setEmails(emails.filter((_, j) => j !== i))}
-                    className="text-red-400 hover:text-red-300 cursor-pointer"><Trash2 className="w-4 h-4" /></button>
-                )}
+                <div className="space-y-2 max-h-24 overflow-y-auto pr-1">
+                  {phones.map((p, i) => (
+                    <div key={i} className="flex gap-2 items-center">
+                      <div className="relative flex-1">
+                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-crm-text-sub" />
+                        <input 
+                          type="tel" 
+                          value={p.phone} 
+                          onChange={(ev) => { const n = [...phones]; n[i].phone = ev.target.value; setPhones(n); }}
+                          className={`${inputCls} pl-10`} 
+                          placeholder="+1 555 0000" 
+                        />
+                      </div>
+                      <select 
+                        value={p.status} 
+                        onChange={(ev) => { const n = [...phones]; n[i].status = ev.target.value; setPhones(n); }}
+                        className="px-2 py-1.5 rounded-xl bg-crm-input-bg border border-crm-border text-crm-text-main text-sm focus:outline-none focus:border-[#0164DA]"
+                      >
+                        <option value="Not_Verified">Not Verified</option>
+                        <option value="Verified">Verified</option>
+                      </select>
+                      {phones.length > 1 && (
+                        <button 
+                          type="button" 
+                          onClick={() => setPhones(phones.filter((_, j) => j !== i))}
+                          className="p-1.5 text-red-400 hover:text-red-300 cursor-pointer hover:bg-red-500/10 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
-            ))}
-          </div>
 
-          {/* Phones */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className={labelCls}>Phone Numbers</label>
-              <button type="button" onClick={() => setPhones([...phones, { phone: "", status: "Not_Verified" }])}
-                className="text-[10px] text-[#03D9AF] hover:underline cursor-pointer">+ Add Phone</button>
-            </div>
-            {phones.map((p, i) => (
-              <div key={i} className="flex gap-2 mb-2">
-                <input type="tel" value={p.phone} onChange={(ev) => { const n = [...phones]; n[i].phone = ev.target.value; setPhones(n); }}
-                  className={`${inputCls} flex-1`} placeholder="+1 555 0000" />
-                <select value={p.status} onChange={(ev) => { const n = [...phones]; n[i].status = ev.target.value; setPhones(n); }}
-                  className="px-3 py-2.5 rounded-xl bg-crm-input-bg border border-crm-border text-crm-text-main text-xs focus:outline-none focus:border-[#0164DA]">
-                  <option value="Not_Verified">Not Verified</option>
-                  <option value="Verified">Verified</option>
-                </select>
-                {phones.length > 1 && (
-                  <button type="button" onClick={() => setPhones(phones.filter((_, j) => j !== i))}
-                    className="text-red-400 hover:text-red-300 cursor-pointer"><Trash2 className="w-4 h-4" /></button>
-                )}
+              {/* Custom Fields Section */}
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-[#0164DA] uppercase tracking-wider">Custom Fields</span>
+                  <button 
+                    type="button" 
+                    onClick={() => setCustomFields([...customFields, { key: "", value: "" }])}
+                    className="flex items-center gap-1 text-xs text-[#03D9AF] hover:underline cursor-pointer font-bold uppercase tracking-wider"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> Add Field
+                  </button>
+                </div>
+                <div className="space-y-2 max-h-28 overflow-y-auto pr-1">
+                  {customFields.length === 0 ? (
+                    <div className="text-center py-4 border border-dashed border-crm-border/40 bg-crm-panel/20 text-crm-text-sub text-xs font-bold uppercase tracking-wider">
+                      No custom fields added
+                    </div>
+                  ) : (
+                    customFields.map((f, i) => (
+                      <div key={i} className="flex gap-2 items-center">
+                        <input 
+                          type="text" 
+                          value={f.key} 
+                          onChange={(ev) => { const n = [...customFields]; n[i].key = ev.target.value; setCustomFields(n); }}
+                          className={`${inputCls} w-2/5`} 
+                          placeholder="Field Key" 
+                        />
+                        <input 
+                          type="text" 
+                          value={f.value} 
+                          onChange={(ev) => { const n = [...customFields]; n[i].value = ev.target.value; setCustomFields(n); }}
+                          className={`${inputCls} flex-1`} 
+                          placeholder="Value" 
+                        />
+                        <button 
+                          type="button" 
+                          onClick={() => setCustomFields(customFields.filter((_, j) => j !== i))}
+                          className="p-1.5 text-red-400 hover:text-red-300 cursor-pointer hover:bg-red-500/10 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
-            ))}
-          </div>
 
-          {/* Remarks */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className={labelCls}>Remarks</label>
-              <div className="flex items-center gap-1 bg-crm-panel-hover/50 p-1 rounded-lg border border-crm-border">
-                <button
-                  type="button"
-                  onClick={() => insertFormatting("**", "**")}
-                  className="px-2 py-0.5 text-[10px] font-bold rounded hover:bg-crm-panel border border-transparent hover:border-crm-border text-crm-text-main cursor-pointer"
-                  title="Bold"
-                >
-                  B
-                </button>
-                <button
-                  type="button"
-                  onClick={() => insertFormatting("*", "*")}
-                  className="px-2 py-0.5 text-[10px] italic rounded hover:bg-crm-panel border border-transparent hover:border-crm-border text-crm-text-main cursor-pointer"
-                  title="Italic"
-                >
-                  I
-                </button>
-                <button
-                  type="button"
-                  onClick={() => insertFormatting("- ")}
-                  className="px-2 py-0.5 text-[10px] rounded hover:bg-crm-panel border border-transparent hover:border-crm-border text-crm-text-main cursor-pointer"
-                  title="Bullet List"
-                >
-                  • List
-                </button>
-                <button
-                  type="button"
-                  onClick={() => insertFormatting("1. ")}
-                  className="px-2 py-0.5 text-[10px] rounded hover:bg-crm-panel border border-transparent hover:border-crm-border text-crm-text-main cursor-pointer"
-                  title="Numbered List"
-                >
-                  1. List
-                </button>
-              </div>
             </div>
-            <textarea
-              id="remarks-textarea"
-              value={remarks}
-              onChange={(e) => setRemarks(e.target.value)}
-              rows={3}
-              className={`${inputCls} resize-none`}
-              placeholder="Notes, requirements, context..."
-            />
-          </div>
 
-          {/* Custom Fields */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className={labelCls}>Custom Fields</label>
-              <button type="button" onClick={() => setCustomFields([...customFields, { key: "", value: "" }])}
-                className="text-[10px] text-[#03D9AF] hover:underline cursor-pointer">+ Add Field</button>
-            </div>
-            {customFields.map((f, i) => (
-              <div key={i} className="flex gap-2 mb-2">
-                <input type="text" value={f.key} onChange={(ev) => { const n = [...customFields]; n[i].key = ev.target.value; setCustomFields(n); }}
-                  className={`${inputCls} w-2/5`} placeholder="Field name" />
-                <input type="text" value={f.value} onChange={(ev) => { const n = [...customFields]; n[i].value = ev.target.value; setCustomFields(n); }}
-                  className={`${inputCls} flex-1`} placeholder="Value" />
-                <button type="button" onClick={() => setCustomFields(customFields.filter((_, j) => j !== i))}
-                  className="text-red-400 hover:text-red-300 cursor-pointer"><Trash2 className="w-4 h-4" /></button>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-3 border-t border-crm-border bg-crm-panel/40 backdrop-blur-sm gap-4 flex-shrink-0">
+          <div className="w-full sm:w-auto">
+            {error && (
+              <div className="flex items-center gap-2 text-red-400 bg-red-500/10 border border-red-500/20 px-3 py-1.5 text-sm font-semibold rounded-xl">
+                <AlertCircle className="w-4 h-4" />
+                <span>{error}</span>
               </div>
-            ))}
+            )}
           </div>
-
-          <div className="flex justify-end gap-3 pt-2 border-t border-crm-border">
-            <button type="button" onClick={onClose}
-              className="px-5 py-2.5 rounded-xl bg-crm-panel-hover hover:bg-crm-panel border border-crm-border text-sm font-semibold transition-colors cursor-pointer">Cancel</button>
-            <button type="submit" disabled={loading}
-              className="px-6 py-2.5 rounded-xl bg-[#0164DA] hover:opacity-90 text-white font-bold text-sm transition-all disabled:opacity-50 cursor-pointer">
-              {loading ? "Saving..." : isEdit ? "Update Lead" : "Create Lead"}
+          <div className="flex items-center justify-end gap-3 w-full sm:w-auto">
+            <button 
+              type="button" 
+              onClick={onClose}
+              className="px-5 py-2.5 rounded-xl bg-crm-panel-hover hover:bg-crm-panel border border-crm-border text-sm font-bold uppercase tracking-wider text-crm-text-main transition-colors cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button 
+              type="submit" 
+              disabled={loading}
+              className="px-6 py-2.5 rounded-xl bg-[#0164DA] hover:bg-[#0164DA]/90 border border-[#0164DA] text-white font-bold text-sm uppercase tracking-widest transition-all disabled:opacity-50 cursor-pointer shadow-lg shadow-[#0164DA]/20"
+            >
+              {loading ? "Saving Details..." : isEdit ? "Update Lead Info" : "Add Lead"}
             </button>
           </div>
-        </form>
-      </div>
+        </div>
+      </form>
     </div>
   );
 }

@@ -12,45 +12,54 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Email and password are required." }, { status: 400 });
     }
 
-    const adminEmail = process.env.ADMIN_EMAIL;
-    const adminPassword = process.env.ADMIN_PASSWORD;
+    // Authenticate user against the database (Admin or Business Developer)
+    const user = await prisma.user.findUnique({
+      where: { email: email.trim().toLowerCase() },
+    });
 
-    if (
-      adminEmail &&
-      adminPassword &&
-      email.trim().toLowerCase() === adminEmail.trim().toLowerCase() &&
-      password === adminPassword
-    ) {
-      const authUser = {
-        id: "admin1234567",
-        name: "Admin",
-        email: adminEmail.trim().toLowerCase(),
-        role: "admin" as const,
-        status: "active" as const,
-      };
-      const token = signToken(authUser);
-      const cookieConfig = setSessionCookie(token);
-
-      // Fire Discord webhook (non-blocking)
-      sendDiscordNotification(formatDiscordLogin(authUser.name, authUser.email, "login"));
-
-      const response = NextResponse.json({
-        data: authUser,
-        message: "Login successful (Admin Bypass).",
-      });
-      response.cookies.set(cookieConfig.name, cookieConfig.value, {
-        httpOnly: cookieConfig.httpOnly,
-        maxAge: cookieConfig.maxAge,
-        path: cookieConfig.path,
-        sameSite: cookieConfig.sameSite,
-      });
-
-      return response;
+    if (!user) {
+      return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
     }
 
-    // Since admin login is direct and there is no database fetching/authentication,
-    // any request that didn't match the ADMIN_EMAIL and ADMIN_PASSWORD is unauthorized.
-    return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
+    if (user.status !== "active") {
+      return NextResponse.json(
+        { error: "Your account is inactive. Please contact the administrator." },
+        { status: 403 }
+      );
+    }
+
+    const isValidPassword = await bcrypt.compare(password, user.password);
+    if (!isValidPassword) {
+      return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
+    }
+
+    const authUser = {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      status: user.status,
+      image: user.image || undefined,
+    };
+
+    const token = signToken(authUser);
+    const cookieConfig = setSessionCookie(token);
+
+    // Fire Discord webhook (non-blocking)
+    sendDiscordNotification(formatDiscordLogin(authUser.name, authUser.email, "login"));
+
+    const response = NextResponse.json({
+      data: authUser,
+      message: "Login successful.",
+    });
+    response.cookies.set(cookieConfig.name, cookieConfig.value, {
+      httpOnly: cookieConfig.httpOnly,
+      maxAge: cookieConfig.maxAge,
+      path: cookieConfig.path,
+      sameSite: cookieConfig.sameSite,
+    });
+
+    return response;
   } catch (err) {
     console.error("[POST /api/auth/login]", err);
     return NextResponse.json({ error: "Internal server error." }, { status: 500 });

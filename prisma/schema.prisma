@@ -46,8 +46,8 @@ model Pipeline {
   id          String   @id @default(uuid())
   name        String
   description String?
-  createdById String
-  createdBy   User     @relation(fields: [createdById], references: [id])
+  createdById String?
+  createdBy   User?    @relation(fields: [createdById], references: [id])
   createdAt   DateTime @default(now())
 
   leads Lead[]
@@ -65,10 +65,10 @@ model Lead {
   status       String   @default("New")
   leadSource   String   @default("Other")
   pipelineId   String
-  createdById  String
+  createdById  String?
 
   pipeline     Pipeline   @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
-  createdBy    User       @relation(fields: [createdById], references: [id])
+  createdBy    User?      @relation(fields: [createdById], references: [id])
 
   emails       LeadEmail[]
   phones       LeadPhone[]

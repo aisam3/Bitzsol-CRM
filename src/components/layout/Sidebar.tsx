@@ -1,6 +1,6 @@
 "use client";
 
-import { LayoutDashboard, Layers, Users, FileText, Settings, LogOut, ChevronRight, X } from "lucide-react";
+import { LayoutDashboard, Layers, Users, FileText, Settings, LogOut, X } from "lucide-react";
 import Image from "next/image";
 import type { AuthUser } from "@/types";
 import type { ActiveTab } from "@/app/page";
@@ -57,7 +57,6 @@ export function Sidebar({ user, activeTab, onTabChange, onSignOut, open, onClose
                   <Icon className="w-4 h-4" />
                   <span>{label}</span>
                 </div>
-                {!active && <ChevronRight className="w-3 h-3 opacity-40" />}
               </button>
             );
           })}
