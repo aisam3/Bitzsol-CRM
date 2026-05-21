@@ -39,10 +39,22 @@ if (dbUrl.includes("api_key=")) {
   }
 }
 
-console.log("[Prisma Setup] Using Direct TCP Connection:", connectionString ? "Parsed Successfully" : "Not Found");
+console.log("[Prisma Setup] Using Connection String:", connectionString ? "Parsed Successfully" : "Not Found");
+
+if (!connectionString) {
+  console.error("[Prisma Setup] CRITICAL ERROR: DATABASE_URL is not set or resolved.");
+}
+
+// Determine if we are on localhost/dev database
+const isLocal = connectionString.includes("localhost") || connectionString.includes("127.0.0.1");
 
 // 3. Create pool and adapter
-const pool = new Pool({ connectionString });
+// For production databases (like Supabase, Neon, etc.), we need to support SSL by default,
+// otherwise the pg driver will throw a "self-signed certificate" or "SSL connection is required" error.
+const pool = new Pool({
+  connectionString,
+  ssl: isLocal ? false : { rejectUnauthorized: false },
+});
 const adapter = new PrismaPg(pool);
 
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
