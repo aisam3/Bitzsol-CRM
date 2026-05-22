@@ -36,8 +36,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Pipeline name is required." }, { status: 400 });
     }
 
+    const createdById = session.id;
+
     const pipeline = await prisma.pipeline.create({
-      data: { name: name.trim(), description: description?.trim() || null, createdById: session.id },
+      data: { name: name.trim(), description: description?.trim() || null, createdById },
       include: {
         createdBy: { select: { name: true, email: true } },
         _count: { select: { leads: true } },

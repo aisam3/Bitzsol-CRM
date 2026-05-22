@@ -14,7 +14,15 @@ export async function GET(req: NextRequest) {
     const status = searchParams.get("status");
     const search = searchParams.get("search");
 
-    const where: Record<string, unknown> = {};
+    const page = parseInt(searchParams.get("page") || "1", 10);
+    const limitParam = searchParams.get("limit") || "10";
+    const isAll = limitParam === "all";
+    const limit = parseInt(limitParam, 10);
+
+    const sortField = searchParams.get("sortField") || "createdAt";
+    const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
+
+    const where: Record<string, any> = {};
 
     // BDs only see their own leads
     if (session.role === "business_developer") {
@@ -22,7 +30,7 @@ export async function GET(req: NextRequest) {
     }
 
     if (pipelineId) where.pipelineId = pipelineId;
-    if (status) where.status = status;
+    if (status && status !== "All") where.status = status;
     if (search) {
       where.OR = [
         { firstName: { contains: search, mode: "insensitive" } },
@@ -31,6 +39,21 @@ export async function GET(req: NextRequest) {
         { designation: { contains: search, mode: "insensitive" } },
       ];
     }
+
+    // Determine orderBy
+    let orderBy: Record<string, any> = { createdAt: sortOrder };
+    if (sortField === "name") {
+      orderBy = { firstName: sortOrder };
+    } else if (sortField === "date") {
+      orderBy = { date: sortOrder };
+    } else if (sortField === "status") {
+      orderBy = { status: sortOrder };
+    } else if (sortField === "source") {
+      orderBy = { leadSource: sortOrder };
+    }
+
+    // Count query
+    const total = await prisma.lead.count({ where });
 
     const leads = await prisma.lead.findMany({
       where,
@@ -41,10 +64,22 @@ export async function GET(req: NextRequest) {
         phones: true,
         customFields: true,
       },
-      orderBy: { createdAt: "desc" },
+      orderBy,
+      ...(isAll ? {} : {
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
     });
 
-    return NextResponse.json({ data: leads });
+    return NextResponse.json({
+      data: leads,
+      pagination: isAll ? null : {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
   } catch (err) {
     console.error("[GET /api/leads]", err);
     return NextResponse.json({ error: "Internal server error." }, { status: 500 });
@@ -74,6 +109,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Pipeline not found." }, { status: 404 });
     }
 
+    const createdById = session.id;
+
     const lead = await prisma.lead.create({
       data: {
         firstName: firstName.trim(),
@@ -86,7 +123,7 @@ export async function POST(req: NextRequest) {
         remarks: remarks?.trim() || null,
         status: status || "New",
         pipelineId,
-        createdById: session.id,
+        createdById,
         emails: {
           create: (emails ?? []).map((e: { email: string; status: string }) => ({
             email: e.email,

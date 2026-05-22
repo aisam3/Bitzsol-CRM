@@ -14,15 +14,15 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Bitzsol CRM | Enterprise Relationship Management",
-  description: "Accelerate your business growth with Bitzsol CRM. The next-generation platform for enterprise-grade customer relationship management.",
-  keywords: ["CRM", "Enterprise", "Bitzsol", "Relationship Management", "Business Growth"],
+  title: "Bitzsol | Enterprise Relationship Management",
+  description: "Accelerate your business growth with Bitzsol. The next-generation platform for enterprise-grade relationship management.",
+  keywords: ["Enterprise", "Bitzsol", "Relationship Management", "Business Growth"],
   authors: [{ name: "Bitzsol Team" }],
   openGraph: {
-    title: "Bitzsol CRM",
+    title: "Bitzsol",
     description: "Enterprise Relationship Management redefined.",
-    url: "https://bitzsol-crm.com",
-    siteName: "Bitzsol CRM",
+    url: "https://bitzsol.com",
+    siteName: "Bitzsol",
     locale: "en_US",
     type: "website",
   },

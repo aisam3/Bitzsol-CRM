@@ -30,11 +30,9 @@ export default function App() {
     fetch("/api/auth/session")
       .then((r) => r.json())
       .then((res) => {
-        if (res.data) setUser(res.data);
+        if (res?.data) setUser(res.data);
       })
-      .catch(() => {
-        // Network failure — leave user as null, show auth gate
-      })
+      .catch(() => {})
       .finally(() => setSessionLoading(false));
   }, []);
 
@@ -47,7 +45,7 @@ export default function App() {
   async function fetchAll() {
     const [statsRes, leadsRes, pipelinesRes] = await Promise.all([
       fetch("/api/dashboard").then((r) => r.json()),
-      fetch("/api/leads").then((r) => r.json()),
+      fetch("/api/leads?limit=6").then((r) => r.json()),
       fetch("/api/pipelines").then((r) => r.json()),
     ]);
     if (statsRes.data) setStats(statsRes.data);
@@ -68,7 +66,7 @@ export default function App() {
       <div className="min-h-screen bg-crm-bg flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 premium-gradient rounded-2xl flex items-center justify-center text-white font-black text-xl animate-pulse">B</div>
-          <p className="text-crm-text-sub text-sm font-semibold">Loading Bitzsol CRM...</p>
+          <p className="text-crm-text-sub text-sm font-semibold">Loading Bitzsol...</p>
         </div>
       </div>
     );

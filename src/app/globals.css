@@ -109,6 +109,9 @@
 }
 
 @layer base {
+  html {
+    font-size: 108%;
+  }
   * {
     border-color: var(--color-border);
   }

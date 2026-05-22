@@ -60,11 +60,11 @@ export function DashboardHeader({ user, onMenuOpen, activeTab, onSignOut, onOpen
           )}
         </button>
 
-        {/* Notifications */}
+        {/* Notifications
         <div className="w-9 h-9 rounded-xl bg-crm-panel border border-crm-border flex items-center justify-center relative">
           <Bell className="w-4 h-4 text-crm-text-sub" />
           <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#FB66BC] rounded-full ring-2 ring-crm-panel" />
-        </div>
+        </div> */}
 
         {user && (
           <div className="relative">
@@ -88,7 +88,7 @@ export function DashboardHeader({ user, onMenuOpen, activeTab, onSignOut, onOpen
             </button>
 
             {showDropdown && (
-              <div 
+              <div
                 onClick={(e) => e.stopPropagation()}
                 className="absolute right-0 mt-3 w-56 bg-crm-panel border border-crm-border rounded-2xl shadow-xl p-4 z-50 animate-in fade-in slide-in-from-top-3 duration-200"
               >
@@ -102,11 +102,10 @@ export function DashboardHeader({ user, onMenuOpen, activeTab, onSignOut, onOpen
                   </div>
                   <p className="text-sm font-bold text-crm-text-main truncate max-w-full">{user.name}</p>
                   <p className="text-[10px] text-crm-text-sub truncate max-w-full my-0.5">{user.email}</p>
-                  <span className={`inline-block text-[9px] font-bold px-2 py-0.5 rounded-full border mt-1.5 ${
-                    user.role === "admin" 
-                      ? "bg-[#0164DA]/10 text-[#0164DA] border-[#0164DA]/20" 
+                  <span className={`inline-block text-[9px] font-bold px-2 py-0.5 rounded-full border mt-1.5 ${user.role === "admin"
+                      ? "bg-[#0164DA]/10 text-[#0164DA] border-[#0164DA]/20"
                       : "bg-[#FB66BC]/10 text-[#FB66BC] border-[#FB66BC]/20"
-                  }`}>
+                    }`}>
                     {user.role === "admin" ? "Admin" : "Business Dev"}
                   </span>
                 </div>

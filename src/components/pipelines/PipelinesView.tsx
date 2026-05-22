@@ -57,14 +57,14 @@ export function PipelinesView({ user, pipelines, onRefresh }: Props) {
         </div>
         {user?.role === "admin" && (
           <button onClick={openCreate}
-            className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#0164DA] to-[#FB66BC] hover:opacity-90 text-white text-xs font-bold rounded-xl cursor-pointer shadow-lg">
+            className="flex items-center gap-2 px-4 py-2.5 bg-[#0164DA] hover:opacity-90 text-white text-xs font-bold rounded-xl cursor-pointer shadow-lg">
             <Plus className="w-3.5 h-3.5" /> New Pipeline
           </button>
         )}
       </div>
 
       {pipelines.length === 0 ? (
-        <div className="bg-crm-panel border border-crm-border rounded-3xl text-center py-16 shadow-sm">
+        <div className="glass rounded-2xl text-center py-16 shadow-md border border-crm-border/30">
           <Layers className="w-10 h-10 text-crm-text-sub mx-auto mb-3" />
           <p className="text-sm font-bold text-crm-text-main mb-1">No pipelines yet</p>
           {user?.role === "admin" && <p className="text-xs text-crm-text-sub">Create your first pipeline to start organizing leads.</p>}
@@ -72,7 +72,7 @@ export function PipelinesView({ user, pipelines, onRefresh }: Props) {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {pipelines.map((p) => (
-            <div key={p.id} className="bg-crm-panel border border-crm-border p-5 rounded-2xl hover:border-[#0164DA]/30 transition-all group shadow-sm">
+            <div key={p.id} className="glass p-5 rounded-2xl border border-crm-border/30 hover:border-[#0164DA]/30 hover:shadow-lg transition-all duration-300 group shadow-md">
               <div className="flex items-start justify-between mb-3">
                 <div className="w-10 h-10 rounded-xl bg-[#0164DA]/10 flex items-center justify-center text-[#0164DA]">
                   <Layers className="w-5 h-5" />
@@ -107,13 +107,13 @@ export function PipelinesView({ user, pipelines, onRefresh }: Props) {
             {error && <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-3 rounded-xl text-xs mb-4">{error}</div>}
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-[10px] font-bold text-crm-text-sub uppercase tracking-wider mb-1.5">Pipeline Name *</label>
+                <label className="block text-[10px] font-bold text-[#0164DA] uppercase tracking-wider mb-1.5">Pipeline Name *</label>
                 <input type="text" required value={name} onChange={(e) => setName(e.target.value)}
                   className="w-full px-4 py-2.5 rounded-xl bg-crm-input-bg border border-crm-border text-crm-text-main focus:outline-none focus:border-[#0164DA] text-sm"
                   placeholder="e.g. Inbound Sales" />
               </div>
               <div>
-                <label className="block text-[10px] font-bold text-crm-text-sub uppercase tracking-wider mb-1.5">Description</label>
+                <label className="block text-[10px] font-bold text-[#0164DA] uppercase tracking-wider mb-1.5">Description</label>
                 <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3}
                   className="w-full px-4 py-2.5 rounded-xl bg-crm-input-bg border border-crm-border text-crm-text-main focus:outline-none focus:border-[#0164DA] text-sm resize-none"
                   placeholder="Optional description..." />

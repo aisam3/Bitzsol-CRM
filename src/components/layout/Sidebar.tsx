@@ -1,6 +1,6 @@
 "use client";
 
-import { LayoutDashboard, Layers, Users, FileText, Settings, LogOut, ChevronRight, X } from "lucide-react";
+import { LayoutDashboard, Layers, Users, FileText, Settings, LogOut, X } from "lucide-react";
 import Image from "next/image";
 import type { AuthUser } from "@/types";
 import type { ActiveTab } from "@/app/page";
@@ -34,7 +34,7 @@ export function Sidebar({ user, activeTab, onTabChange, onSignOut, open, onClose
             <img src="/logo.png" alt="Bitzsol Logo" className="w-6 h-6 object-contain brightness-0 invert" />
           </div>
           <div>
-            <p className="text-base font-bold leading-tight text-crm-text-main">Bitzsol <span className="text-[#03D9AF]">CRM</span></p>
+            <p className="text-base font-bold leading-tight text-crm-text-main">Bitzsol</p>
           </div>
           <button onClick={onClose} className="md:hidden ml-auto text-crm-text-sub hover:text-crm-text-main"><X className="w-5 h-5" /></button>
         </div>
@@ -57,7 +57,6 @@ export function Sidebar({ user, activeTab, onTabChange, onSignOut, open, onClose
                   <Icon className="w-4 h-4" />
                   <span>{label}</span>
                 </div>
-                {!active && <ChevronRight className="w-3 h-3 opacity-40" />}
               </button>
             );
           })}

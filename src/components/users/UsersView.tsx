@@ -190,7 +190,7 @@ export function UsersView() {
   const inputCls =
     "w-full px-4 py-2.5 rounded-xl bg-crm-input-bg border border-crm-border text-crm-text-main focus:outline-none focus:border-[#0164DA] text-sm";
   const labelCls =
-    "block text-[10px] font-bold text-crm-text-sub uppercase tracking-wider mb-1.5";
+    "block text-[10px] font-bold text-[#0164DA] uppercase tracking-wider mb-1.5";
 
   return (
     <div className="space-y-5">
@@ -204,14 +204,14 @@ export function UsersView() {
         </div>
         <button
           onClick={openCreate}
-          className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#0164DA] to-[#FB66BC] hover:opacity-90 text-white text-xs font-bold rounded-xl cursor-pointer shadow-lg transition-all"
+          className="flex items-center gap-2 px-4 py-2.5 bg-[#0164DA] hover:opacity-90 text-white text-xs font-bold rounded-xl cursor-pointer shadow-lg transition-all"
         >
           <Plus className="w-3.5 h-3.5" /> Add User
         </button>
       </div>
 
       {/* Advanced Toolbar */}
-      <div className="flex flex-row gap-2 items-center justify-between bg-crm-panel border border-crm-border p-3 sm:p-4 rounded-2xl shadow-sm">
+      <div className="flex flex-row gap-2 items-center justify-between glass p-3 sm:p-4 rounded-2xl shadow-md border border-crm-border/30">
         {/* Search */}
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-crm-text-sub" />
@@ -288,14 +288,14 @@ export function UsersView() {
       {loading ? (
         <div className="text-center py-16 text-crm-text-sub text-sm">Loading users...</div>
       ) : filteredUsers.length === 0 ? (
-        <div className="bg-crm-panel border border-crm-border rounded-3xl text-center py-16 shadow-sm">
+        <div className="glass rounded-2xl text-center py-16 shadow-md border border-crm-border/30">
           <Users className="w-10 h-10 text-crm-text-sub mx-auto mb-3" />
           <p className="text-sm font-bold text-crm-text-main">
             {searchQuery ? "No matching users found" : "No users yet"}
           </p>
         </div>
       ) : (
-        <div className="bg-crm-panel border border-crm-border rounded-3xl overflow-hidden shadow-sm">
+        <div className="glass rounded-2xl overflow-hidden shadow-md border border-crm-border/30">
           {/* Desktop Table View — hidden on mobile */}
           <div className="hidden sm:block overflow-x-auto">
             <table className="w-full">
@@ -576,40 +576,7 @@ export function UsersView() {
               </div>
             )}
             <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Photo Selector */}
-              <div className="flex flex-col items-center justify-center gap-2 py-1 border-b border-crm-border/40 pb-3 mb-1">
-                <div className="relative group">
-                  <div className="w-16 h-16 rounded-full border border-crm-border bg-crm-panel-hover overflow-hidden flex items-center justify-center text-crm-text-main text-xl font-bold shadow-inner">
-                    {image ? (
-                      <img src={image} alt="Preview" className="w-full h-full object-cover" />
-                    ) : (
-                      name ? name.substring(0, 2).toUpperCase() : "U"
-                    )}
-                  </div>
-                  <label
-                    htmlFor="user-image-input"
-                    className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center rounded-full text-[9px] font-bold text-white cursor-pointer transition-opacity"
-                  >
-                    Change
-                  </label>
-                  <input
-                    id="user-image-input"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    className="hidden"
-                  />
-                </div>
-                {image && (
-                  <button
-                    type="button"
-                    onClick={() => setImage(null)}
-                    className="text-[9px] text-red-400 hover:underline cursor-pointer"
-                  >
-                    Remove Photo
-                  </button>
-                )}
-              </div>
+
 
               <div>
                 <label className={labelCls}>Full Name *</label>
