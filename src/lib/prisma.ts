@@ -1,3 +1,4 @@
+// Trigger recompilation after prisma client generation
 import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../generated/prisma/client";
@@ -5,16 +6,27 @@ import * as fs from "fs";
 import * as path from "path";
 
 // 1. Get raw database URL (either from process.env or direct file read to bypass Next.js caching)
-let dbUrl = process.env.DATABASE_URL || "";
+let dbUrl = process.env.DIRECT_URL || process.env.DATABASE_URL || "";
+const envPath = path.join(process.cwd(), ".env");
+let envDirectUrl = "";
 
 if (!dbUrl) {
   try {
-    const envPath = path.join(process.cwd(), ".env");
     if (fs.existsSync(envPath)) {
       const envContent = fs.readFileSync(envPath, "utf-8");
-      const match = envContent.match(/DATABASE_URL="([^"]+)"/) || envContent.match(/DATABASE_URL=([^\s]+)/);
-      if (match && match[1]) {
-        dbUrl = match[1];
+      const dbMatch =
+        envContent.match(/DATABASE_URL="([^"]+)"/) ||
+        envContent.match(/DATABASE_URL=([^\s]+)/);
+      const directMatch =
+        envContent.match(/DIRECT_URL="([^"]+)"/) ||
+        envContent.match(/DIRECT_URL=([^\s]+)/);
+
+      if (directMatch?.[1]) {
+        envDirectUrl = directMatch[1];
+      }
+
+      if (dbMatch?.[1]) {
+        dbUrl = dbMatch[1];
       }
     }
   } catch (e) {
@@ -22,11 +34,20 @@ if (!dbUrl) {
   }
 }
 
+if (!dbUrl && envDirectUrl) {
+  dbUrl = envDirectUrl;
+}
+
+// Prefer a plain postgres direct URL when both are present and DATABASE_URL is a prisma+postgres wrapper
+if (dbUrl?.startsWith("prisma+postgres://") && envDirectUrl) {
+  dbUrl = envDirectUrl;
+}
+
 // 2. Parse the Prisma 7 api_key if it is a prisma+postgres:// URL to get the direct TCP Postgres URL
 let connectionString = dbUrl;
 if (dbUrl.includes("api_key=")) {
   const keyMatch = dbUrl.match(/\?api_key=([^&"]+)/);
-  if (keyMatch && keyMatch[1]) {
+  if (keyMatch?.[1]) {
     try {
       const decoded = Buffer.from(keyMatch[1], "base64").toString("utf-8");
       const parsed = JSON.parse(decoded);
@@ -39,14 +60,26 @@ if (dbUrl.includes("api_key=")) {
   }
 }
 
-console.log("[Prisma Setup] Using Connection String:", connectionString ? "Parsed Successfully" : "Not Found");
+console.log(
+  "[Prisma Setup] Using Connection String:",
+  connectionString
+    ? connectionString.startsWith("postgres://")
+      ? "Parsed Successfully"
+      : "Parsed Successfully"
+    : "Not Found",
+);
 
 if (!connectionString) {
-  console.error("[Prisma Setup] CRITICAL ERROR: DATABASE_URL is not set or resolved.");
+  console.error(
+    "[Prisma Setup] CRITICAL ERROR: DATABASE_URL / DIRECT_URL is not set or resolved.",
+  );
 }
 
 // Determine if we are on localhost/dev database
-const isLocal = connectionString.includes("localhost") || connectionString.includes("127.0.0.1");
+const isLocal =
+  typeof connectionString === "string" &&
+  (connectionString.includes("localhost") ||
+    connectionString.includes("127.0.0.1"));
 
 // 3. Create pool and adapter
 // For production databases (like Supabase, Neon, etc.), we need to support SSL by default,
@@ -54,6 +87,7 @@ const isLocal = connectionString.includes("localhost") || connectionString.inclu
 const pool = new Pool({
   connectionString,
   ssl: isLocal ? false : { rejectUnauthorized: false },
+  connectionTimeoutMillis: 5000,
 });
 const adapter = new PrismaPg(pool);
 
