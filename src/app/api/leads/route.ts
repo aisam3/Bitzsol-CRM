@@ -32,11 +32,14 @@ export async function GET(req: NextRequest) {
     if (pipelineId) where.pipelineId = pipelineId;
     if (status && status !== "All") where.status = status;
     if (search) {
+      const cleanSearch = search.trim();
       where.OR = [
-        { firstName: { contains: search, mode: "insensitive" } },
-        { middleName: { contains: search, mode: "insensitive" } },
-        { lastName: { contains: search, mode: "insensitive" } },
-        { designation: { contains: search, mode: "insensitive" } },
+        { firstName: { contains: cleanSearch, mode: "insensitive" } },
+        { middleName: { contains: cleanSearch, mode: "insensitive" } },
+        { lastName: { contains: cleanSearch, mode: "insensitive" } },
+        { designation: { contains: cleanSearch, mode: "insensitive" } },
+        { tags: { has: cleanSearch } },
+        { tags: { has: cleanSearch.startsWith("#") ? cleanSearch : `#${cleanSearch}` } },
       ];
     }
 
@@ -96,7 +99,7 @@ export async function POST(req: NextRequest) {
     const {
       firstName, middleName, lastName, date, designation,
       leadSource, sourceLink, remarks, status,
-      pipelineId, emails, phones, customFields,
+      pipelineId, emails, phones, customFields, tags,
     } = body;
 
     if (!firstName?.trim() || !pipelineId) {
@@ -124,6 +127,7 @@ export async function POST(req: NextRequest) {
         status: status || "New",
         pipelineId,
         createdById,
+        tags: tags ?? [],
         emails: {
           create: (emails ?? []).map((e: { email: string; status: string }) => ({
             email: e.email,

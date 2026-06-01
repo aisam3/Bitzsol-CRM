@@ -190,7 +190,7 @@ export function UsersView() {
   const inputCls =
     "w-full px-4 py-2.5 rounded-xl bg-crm-input-bg border border-crm-border text-crm-text-main focus:outline-none focus:border-[#0164DA] text-sm";
   const labelCls =
-    "block text-[10px] font-bold text-[#0164DA] uppercase tracking-wider mb-1.5";
+    "block text-xs font-bold text-[#0164DA] uppercase tracking-wider mb-1.5";
 
   return (
     <div className="space-y-5">
@@ -241,7 +241,7 @@ export function UsersView() {
             <>
               <div className="fixed inset-0 z-30" onClick={() => setShowColDropdown(false)} />
               <div className="absolute right-0 mt-2 w-48 bg-crm-panel border border-crm-border rounded-xl shadow-xl p-3 z-40 animate-in fade-in slide-in-from-top-2 duration-150">
-                <p className="text-[10px] font-bold text-crm-text-sub uppercase tracking-wider mb-2">
+                <p className="text-xs font-bold text-crm-text-sub uppercase tracking-wider mb-2">
                   Toggle Columns
                 </p>
                 <div className="space-y-2">
@@ -300,7 +300,7 @@ export function UsersView() {
           <div className="hidden sm:block overflow-x-auto">
             <table className="w-full">
               <thead className="border-b border-crm-border">
-                <tr className="text-[10px] font-bold text-crm-text-sub uppercase tracking-widest select-none">
+                <tr className="text-xs font-bold text-crm-text-sub uppercase tracking-widest select-none">
                   {/* Name Sort Header */}
                   <th
                     className="px-5 py-4 text-left cursor-pointer hover:text-crm-text-main transition-colors"
@@ -389,7 +389,7 @@ export function UsersView() {
                         </div>
                         <div>
                           <p className="text-sm font-bold text-crm-text-main">{u.name}</p>
-                          <p className="text-[10px] text-crm-text-sub">{u.email}</p>
+                          <p className="text-xs text-crm-text-sub">{u.email}</p>
                         </div>
                       </div>
                     </td>
@@ -398,7 +398,7 @@ export function UsersView() {
                     {visibleCols.role && (
                       <td className="px-5 py-4 hidden sm:table-cell">
                         <span
-                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                          className={`text-[0.72rem] font-bold px-2 py-0.5 rounded-full border ${
                             u.role === "admin"
                               ? "bg-[#0164DA]/10 text-[#0164DA] border-[#0164DA]/20"
                               : "bg-[#FB66BC]/10 text-[#FB66BC] border-[#FB66BC]/20"
@@ -421,7 +421,7 @@ export function UsersView() {
                       <td className="px-5 py-4">
                         <button
                           onClick={() => toggleStatus(u)}
-                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full border cursor-pointer transition-all ${
+                          className={`text-[0.72rem] font-bold px-2 py-0.5 rounded-full border cursor-pointer transition-all ${
                             u.status === "active"
                               ? "bg-[#03D9AF]/10 text-[#03D9AF] border-[#03D9AF]/20 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20"
                               : "bg-red-500/10 text-red-400 border-red-500/20 hover:bg-[#03D9AF]/10 hover:text-[#03D9AF] hover:border-[#03D9AF]/20"
@@ -472,7 +472,7 @@ export function UsersView() {
                     <p className="text-xs text-crm-text-sub truncate leading-none">{u.email}</p>
                     <div className="flex flex-wrap items-center gap-1.5 pt-1">
                       <span
-                        className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${
+                        className={`text-[0.72rem] font-bold px-1.5 py-0.5 rounded-full border ${
                           u.role === "admin"
                             ? "bg-[#0164DA]/10 text-[#0164DA] border-[#0164DA]/20"
                             : "bg-[#FB66BC]/10 text-[#FB66BC] border-[#FB66BC]/20"
@@ -480,7 +480,7 @@ export function UsersView() {
                       >
                         {u.role === "admin" ? "Admin" : "Business Dev"}
                       </span>
-                      <span className="text-[9px] text-crm-text-sub bg-crm-panel border border-crm-border px-1.5 py-0.5 rounded-md">
+                      <span className="text-[0.72rem] text-crm-text-sub bg-crm-panel border border-crm-border px-1.5 py-0.5 rounded-md">
                         Joined {new Date(u.createdAt).toLocaleDateString()}
                       </span>
                     </div>
@@ -490,7 +490,7 @@ export function UsersView() {
                 <div className="flex flex-col items-end gap-3 shrink-0">
                   <button
                     onClick={() => toggleStatus(u)}
-                    className={`text-[9px] font-bold px-2 py-0.5 rounded-full border cursor-pointer transition-all ${
+                    className={`text-[0.72rem] font-bold px-2 py-0.5 rounded-full border cursor-pointer transition-all ${
                       u.status === "active"
                         ? "bg-[#03D9AF]/10 text-[#03D9AF] border-[#03D9AF]/20 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20"
                         : "bg-red-500/10 text-red-400 border-red-500/20 hover:bg-[#03D9AF]/10 hover:text-[#03D9AF] hover:border-[#03D9AF]/20"

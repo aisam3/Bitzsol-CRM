@@ -192,7 +192,7 @@ export function LeadsView({ user, leads: initialLeads, pipelines, onRefresh }: P
             <>
               <div className="fixed inset-0 z-30" onClick={() => setShowStatusDropdown(false)} />
               <div className="absolute left-0 sm:right-0 sm:left-auto mt-2 w-44 bg-crm-panel border border-crm-border rounded-xl shadow-xl p-1.5 z-40 animate-in fade-in slide-in-from-top-2 duration-150">
-                <p className="text-[9px] font-bold text-crm-text-sub uppercase tracking-wider px-3 py-1.5 mb-1">
+                <p className="text-xs font-bold text-crm-text-sub uppercase tracking-wider px-3 py-1.5 mb-1">
                   Filter by Status
                 </p>
                 <div className="space-y-0.5">
@@ -236,7 +236,7 @@ export function LeadsView({ user, leads: initialLeads, pipelines, onRefresh }: P
             <>
               <div className="fixed inset-0 z-30" onClick={() => { setShowPipelineDropdown(false); setPipelineSearch(""); }} />
               <div className="absolute left-0 sm:right-0 sm:left-auto mt-2 w-52 bg-crm-panel border border-crm-border rounded-xl shadow-xl p-2 z-40 animate-in fade-in slide-in-from-top-2 duration-150 flex flex-col">
-                <p className="text-[9px] font-bold text-crm-text-sub uppercase tracking-wider px-3 py-1.5 mb-1">
+                <p className="text-xs font-bold text-crm-text-sub uppercase tracking-wider px-3 py-1.5 mb-1">
                   Filter by Pipeline
                 </p>
                 <div className="px-3 pb-2">
@@ -311,7 +311,7 @@ export function LeadsView({ user, leads: initialLeads, pipelines, onRefresh }: P
             <>
               <div className="fixed inset-0 z-30" onClick={() => { setShowColToggle(false); setColSearch(""); }} />
               <div className="absolute right-0 mt-2 w-48 bg-crm-panel border border-crm-border rounded-xl shadow-xl p-3 z-40 animate-in fade-in slide-in-from-top-2 duration-150 space-y-2 flex flex-col">
-                <p className="text-[10px] font-bold text-crm-text-sub uppercase tracking-wider px-3 pt-1">Show Columns</p>
+                <p className="text-xs font-bold text-crm-text-sub uppercase tracking-wider px-3 pt-1">Show Columns</p>
                 <div className="px-3">
                   <div className="relative">
                     <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-crm-text-sub" />
@@ -359,7 +359,7 @@ export function LeadsView({ user, leads: initialLeads, pipelines, onRefresh }: P
           <div className="absolute inset-0 bg-crm-bg/40 backdrop-blur-[2px] flex items-center justify-center z-10 transition-all">
             <div className="flex flex-col items-center gap-2 bg-crm-panel/90 border border-crm-border/60 px-5 py-3 rounded-2xl shadow-xl">
               <div className="w-6 h-6 rounded-full border-2 border-t-[#0164DA] border-crm-border animate-spin" />
-              <p className="text-[10px] text-crm-text-sub font-bold uppercase tracking-wider">Updating Leads...</p>
+              <p className="text-xs text-crm-text-sub font-bold uppercase tracking-wider">Updating Leads...</p>
             </div>
           </div>
         )}
@@ -373,7 +373,7 @@ export function LeadsView({ user, leads: initialLeads, pipelines, onRefresh }: P
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="border-b border-crm-border">
-                <tr className="text-[10px] font-bold text-crm-text-sub uppercase tracking-widest">
+                <tr className="text-xs font-bold text-crm-text-sub uppercase tracking-widest">
                   <th className="px-5 py-4 text-left cursor-pointer hover:text-crm-text-main select-none transition-colors" onClick={() => handleSort("name")}>
                     <div className="flex items-center gap-1">
                       Name
@@ -420,7 +420,17 @@ export function LeadsView({ user, leads: initialLeads, pipelines, onRefresh }: P
                           <p className="text-sm font-bold text-crm-text-main">
                             {[lead.firstName, lead.middleName, lead.lastName].filter(Boolean).join(" ")}
                           </p>
-                          {lead.designation && <p className="text-[10px] text-crm-text-sub">{lead.designation}</p>}
+                          {(lead.designation || (lead.tags && lead.tags.length > 0)) && (
+                            <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                              {lead.designation && <span className="text-xs text-crm-text-sub">{lead.designation}</span>}
+                              {lead.designation && lead.tags && lead.tags.length > 0 && <span className="text-xs text-crm-text-sub/40">•</span>}
+                              {lead.tags && lead.tags.map((tag) => (
+                                <span key={tag} className="text-[0.72rem] font-extrabold px-1.5 py-0.5 rounded bg-[#0164DA]/10 border border-[#0164DA]/20 text-[#0164DA] uppercase tracking-wider">
+                                  {tag}
+                                </span>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </td>
@@ -436,7 +446,7 @@ export function LeadsView({ user, leads: initialLeads, pipelines, onRefresh }: P
                         <select
                           value={lead.status}
                           onChange={(e) => handleStatusChange(lead, e.target.value)}
-                          className="text-[10px] font-bold px-2 py-1 rounded-lg bg-crm-panel-hover border border-crm-border text-crm-text-main focus:outline-none focus:border-[#0164DA] cursor-pointer animate-in fade-in duration-200"
+                          className="text-xs font-bold px-2 py-1 rounded-lg bg-crm-panel-hover border border-crm-border text-crm-text-main focus:outline-none focus:border-[#0164DA] cursor-pointer animate-in fade-in duration-200"
                         >
                           {statuses2.map((s) => <option key={s}>{s}</option>)}
                         </select>
@@ -449,12 +459,12 @@ export function LeadsView({ user, leads: initialLeads, pipelines, onRefresh }: P
                             {lead.emails.slice(0, 1).map((e) => (
                               <div key={e.id} className="flex items-center gap-1.5">
                                 <span className="text-xs text-crm-text-sub truncate max-w-[130px]">{e.email}</span>
-                                <span className={`text-[9px] font-bold px-1 py-0.5 rounded ${e.status === "Verified" ? "text-[#03D9AF] bg-[#03D9AF]/10" : "text-[#F59E0B] bg-[#F59E0B]/10"}`}>
+                                <span className={`text-[0.72rem] font-bold px-1 py-0.5 rounded ${e.status === "Verified" ? "text-[#03D9AF] bg-[#03D9AF]/10" : "text-[#F59E0B] bg-[#F59E0B]/10"}`}>
                                   {e.status === "Verified" ? "✓" : "?"}
                                 </span>
                               </div>
                             ))}
-                            {lead.emails.length > 1 && <p className="text-[9px] text-crm-text-sub">+{lead.emails.length - 1} more</p>}
+                            {lead.emails.length > 1 && <p className="text-[0.72rem] text-crm-text-sub">+{lead.emails.length - 1} more</p>}
                           </div>
                         ) : <span className="text-xs text-crm-text-sub">—</span>}
                       </td>

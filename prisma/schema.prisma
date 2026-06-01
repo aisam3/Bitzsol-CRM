@@ -66,6 +66,7 @@ model Lead {
   leadSource   String   @default("Other")
   pipelineId   String
   createdById  String?
+  tags         String[] @default([])
 
   pipeline     Pipeline   @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
   createdBy    User?      @relation(fields: [createdById], references: [id])

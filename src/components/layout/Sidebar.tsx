@@ -43,7 +43,7 @@ export function Sidebar({ user, activeTab, onTabChange, onSignOut, open, onClose
 
         {/* Nav */}
         <nav className="flex-1 px-4 py-6 space-y-1.5">
-          <p className="text-[10px] font-bold text-crm-text-sub uppercase tracking-widest px-3 mb-3">Manage Listings</p>
+          <p className="text-xs font-bold text-crm-text-sub uppercase tracking-widest px-3 mb-3">Manage Listings</p>
           {NAV_ITEMS.filter((item) => !item.adminOnly || user?.role === "admin").map(({ label, icon: Icon }) => {
             const active = activeTab === label;
             return (

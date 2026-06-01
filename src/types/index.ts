@@ -70,6 +70,7 @@ export interface Lead {
   emails: LeadEmail[];
   phones: LeadPhone[];
   customFields: LeadCustomField[];
+  tags: string[];
 }
 
 export interface DashboardStats {

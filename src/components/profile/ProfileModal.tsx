@@ -194,7 +194,7 @@ export function ProfileModal({ user, onClose, onSaved }: Props) {
                       <button
                         type="button"
                         onClick={handleRemoveImage}
-                        className="text-[10px] text-red-400 hover:underline hover:text-red-300 font-semibold cursor-pointer"
+                        className="text-xs text-red-400 hover:underline hover:text-red-300 font-semibold cursor-pointer"
                       >
                         Remove Photo
                       </button>
@@ -240,7 +240,7 @@ export function ProfileModal({ user, onClose, onSaved }: Props) {
                     <p className="text-xs font-bold text-[#0164DA] uppercase tracking-wider mb-1">
                       Update Password
                     </p>
-                    <p className="text-[10px] text-crm-text-sub uppercase tracking-widest leading-relaxed">
+                    <p className="text-[0.72rem] text-crm-text-sub uppercase tracking-widest leading-relaxed">
                       Leave blank if you do not want to change your password.
                     </p>
                   </div>

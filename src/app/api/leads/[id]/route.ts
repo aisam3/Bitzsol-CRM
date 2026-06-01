@@ -54,7 +54,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     const {
       firstName, middleName, lastName, date, designation,
       leadSource, sourceLink, remarks, status,
-      emails, phones, customFields,
+      emails, phones, customFields, tags,
     } = body;
 
     const updateData: Record<string, unknown> = {};
@@ -67,6 +67,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     if (sourceLink !== undefined) updateData.sourceLink = sourceLink?.trim() || null;
     if (remarks !== undefined) updateData.remarks = remarks?.trim() || null;
     if (status !== undefined) updateData.status = status;
+    if (tags !== undefined) updateData.tags = tags;
 
     // Replace emails/phones/customFields if provided
     if (emails !== undefined) {

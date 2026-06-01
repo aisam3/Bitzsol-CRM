@@ -101,8 +101,8 @@ export function DashboardHeader({ user, onMenuOpen, activeTab, onSignOut, onOpen
                     )}
                   </div>
                   <p className="text-sm font-bold text-crm-text-main truncate max-w-full">{user.name}</p>
-                  <p className="text-[10px] text-crm-text-sub truncate max-w-full my-0.5">{user.email}</p>
-                  <span className={`inline-block text-[9px] font-bold px-2 py-0.5 rounded-full border mt-1.5 ${user.role === "admin"
+                  <p className="text-xs text-crm-text-sub truncate max-w-full my-0.5">{user.email}</p>
+                  <span className={`inline-block text-[0.72rem] font-bold px-2 py-0.5 rounded-full border mt-1.5 ${user.role === "admin"
                       ? "bg-[#0164DA]/10 text-[#0164DA] border-[#0164DA]/20"
                       : "bg-[#FB66BC]/10 text-[#FB66BC] border-[#FB66BC]/20"
                     }`}>
