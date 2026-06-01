@@ -17,10 +17,10 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     const { name, email, password, role, status, image } = body;
 
     const updateData: Record<string, unknown> = {};
-    if (name) updateData.name = name.trim();
-    if (email) updateData.email = email.trim().toLowerCase();
-    if (role) updateData.role = role;
-    if (status) updateData.status = status;
+    if (name !== undefined) updateData.name = name.trim();
+    if (email !== undefined) updateData.email = email.trim().toLowerCase();
+    if (role !== undefined) updateData.role = role;
+    if (status !== undefined) updateData.status = status;
     if (password) updateData.password = await bcrypt.hash(password, 12);
     if (image !== undefined) updateData.image = image;
 

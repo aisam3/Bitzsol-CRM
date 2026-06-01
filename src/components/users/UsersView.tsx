@@ -53,11 +53,20 @@ export function UsersView() {
 
   async function fetchUsers() {
     setLoading(true);
-    const res = await fetch("/api/users");
-    const data = await res.json();
-    if (data.data) setUsers(data.data);
-    else setError(data.error ?? "Failed to load users.");
-    setLoading(false);
+    try {
+      const res = await fetch("/api/users");
+      const data = await res.json();
+      if (data.data) {
+        setUsers(data.data);
+        setError(""); // Clear any previous error
+      } else {
+        setError(data.error ?? "Failed to load users.");
+      }
+    } catch {
+      setError("Network error — could not reach the server.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   function openCreate() {
