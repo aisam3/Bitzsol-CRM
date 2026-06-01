@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "Bitzsol CRM LinkedIn Lead Sync",
+  "description": "Extract LinkedIn profile contact details and sync leads into Bitzsol CRM.",
+  "version": "1.0.0",
+  "permissions": ["activeTab", "scripting", "storage", "tabs"],
+  "host_permissions": [
+    "https://*.linkedin.com/*",
+    "http://localhost:3000/*",
+    "https://localhost:3000/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["*://*.linkedin.com/*"],
+      "js": ["content_script.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Bitzsol CRM LinkedIn Sync"
+  }
+}

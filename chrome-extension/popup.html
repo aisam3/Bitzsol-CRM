@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bitzsol CRM LinkedIn Sync</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>Bitzsol CRM</h1>
+        <p>Sync LinkedIn profile contacts to your CRM.</p>
+      </header>
+
+      <section class="card">
+        <h2>CRM Settings</h2>
+        <label>
+          CRM Base URL
+          <input id="crmUrl" placeholder="https://localhost:3000" />
+        </label>
+        <label>
+          Auth Token
+          <textarea
+            id="authToken"
+            rows="3"
+            placeholder="Paste auth token from Bitzsol CRM"
+          ></textarea>
+        </label>
+        <p class="hint">
+          Get a token from <code>/api/extension/token</code> while logged into
+          Bitzsol CRM.
+        </p>
+        <button id="saveSettings" class="primary">Save Settings</button>
+      </section>
+
+      <section class="card">
+        <h2>LinkedIn Profile</h2>
+        <button id="extractProfile" class="primary">
+          Extract Profile Data
+        </button>
+        <div id="profileSummary" class="summary hidden"></div>
+      </section>
+
+      <section class="card">
+        <h2>Lead Sync</h2>
+        <label>
+          First Name
+          <input id="firstName" />
+        </label>
+        <label>
+          Last Name
+          <input id="lastName" />
+        </label>
+        <label>
+          Title
+          <input id="designation" placeholder="Designation / Title" />
+        </label>
+        <label>
+          Pipeline
+          <select id="pipelineId">
+            <option value="">Select pipeline</option>
+          </select>
+        </label>
+        <label>
+          Company
+          <input id="sourceLink" placeholder="Company or profile URL" />
+        </label>
+        <label>
+          Email(s)
+          <textarea
+            id="emails"
+            rows="3"
+            placeholder="comma separated emails"
+          ></textarea>
+        </label>
+        <label>
+          Phone(s)
+          <textarea
+            id="phones"
+            rows="3"
+            placeholder="comma separated phone numbers"
+          ></textarea>
+        </label>
+        <div class="actions">
+          <button id="enrichData" class="secondary">Enrich with Apify</button>
+          <button id="syncLead" class="primary">Sync to CRM</button>
+        </div>
+      </section>
+
+      <section class="card card-status">
+        <div id="status"></div>
+      </section>
+    </div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
