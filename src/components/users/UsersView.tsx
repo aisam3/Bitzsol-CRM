@@ -12,6 +12,8 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import type { User } from "@/types";
 
@@ -25,6 +27,9 @@ export function UsersView() {
   const [error, setError] = useState("");
   const [formError, setFormError] = useState("");
   const [saving, setSaving] = useState(false);
+
+  // Show/hide password toggle
+  const [showPassword, setShowPassword] = useState(false);
 
   // Form fields
   const [name, setName] = useState("");
@@ -613,14 +618,24 @@ export function UsersView() {
                 <label className={labelCls}>
                   {editUser ? "New Password (leave blank to keep)" : "Password *"}
                 </label>
-                <input
-                  type="password"
-                  required={!editUser}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className={inputCls}
-                  placeholder="••••••••"
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    required={!editUser}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className={inputCls + " pr-11"}
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-crm-text-sub hover:text-crm-text-main transition-colors cursor-pointer"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>

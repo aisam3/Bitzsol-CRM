@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { Eye, EyeOff } from "lucide-react";
 import type { AuthUser } from "@/types";
 
 interface Props {
@@ -11,6 +12,7 @@ interface Props {
 export function AuthGate({ onAuth }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   // Sign in fields
   const [siEmail, setSiEmail] = useState("");
@@ -67,11 +69,21 @@ export function AuthGate({ onAuth }: Props) {
           </div>
           <div>
             <label className="block text-xs font-bold text-[#0164DA] uppercase tracking-wider mb-2">Password</label>
-            <input
-              type="password" required value={siPassword} onChange={(e) => setSiPassword(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl bg-crm-input-bg border border-crm-border text-crm-text-main focus:outline-none focus:border-[#0164DA] text-sm transition-all duration-200"
-              placeholder="••••••••"
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"} required value={siPassword} onChange={(e) => setSiPassword(e.target.value)}
+                className="w-full px-4 py-3 pr-11 rounded-xl bg-crm-input-bg border border-crm-border text-crm-text-main focus:outline-none focus:border-[#0164DA] text-sm transition-all duration-200"
+                placeholder="••••••••"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-crm-text-sub hover:text-crm-text-main transition-colors cursor-pointer"
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
           </div>
           <button
             type="submit" disabled={loading}

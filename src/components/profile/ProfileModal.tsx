@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { X, User, Key, Mail, CheckCircle, Shield } from "lucide-react";
+import { X, User, Key, Mail, CheckCircle, Shield, Eye, EyeOff } from "lucide-react";
 import type { AuthUser } from "@/types";
 
 interface Props {
@@ -22,6 +22,11 @@ export function ProfileModal({ user, onClose, onSaved }: Props) {
   const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
   const [isEditing, setIsEditing] = useState(false);
+
+  // Password visibility toggles
+  const [showCurrentPw, setShowCurrentPw] = useState(false);
+  const [showNewPw, setShowNewPw] = useState(false);
+  const [showConfirmPw, setShowConfirmPw] = useState(false);
 
   const handleCancelEdit = () => {
     setName(user.name);
@@ -252,12 +257,20 @@ export function ProfileModal({ user, onClose, onSaved }: Props) {
                       <div className="relative">
                         <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-crm-text-sub" />
                         <input
-                          type="password"
+                          type={showCurrentPw ? "text" : "password"}
                           value={currentPassword}
                           onChange={(e) => setCurrentPassword(e.target.value)}
-                          className={inputCls}
+                          className={inputCls + " pr-10"}
                           placeholder="••••••••"
                         />
+                        <button
+                          type="button"
+                          onClick={() => setShowCurrentPw(!showCurrentPw)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-crm-text-sub hover:text-crm-text-main transition-colors cursor-pointer"
+                          tabIndex={-1}
+                        >
+                          {showCurrentPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
                       </div>
                     </div>
 
@@ -267,12 +280,20 @@ export function ProfileModal({ user, onClose, onSaved }: Props) {
                       <div className="relative">
                         <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-crm-text-sub" />
                         <input
-                          type="password"
+                          type={showNewPw ? "text" : "password"}
                           value={newPassword}
                           onChange={(e) => setNewPassword(e.target.value)}
-                          className={inputCls}
+                          className={inputCls + " pr-10"}
                           placeholder="••••••••"
                         />
+                        <button
+                          type="button"
+                          onClick={() => setShowNewPw(!showNewPw)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-crm-text-sub hover:text-crm-text-main transition-colors cursor-pointer"
+                          tabIndex={-1}
+                        >
+                          {showNewPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
                       </div>
                     </div>
 
@@ -282,12 +303,20 @@ export function ProfileModal({ user, onClose, onSaved }: Props) {
                       <div className="relative">
                         <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-crm-text-sub" />
                         <input
-                          type="password"
+                          type={showConfirmPw ? "text" : "password"}
                           value={confirmPassword}
                           onChange={(e) => setConfirmPassword(e.target.value)}
-                          className={inputCls}
+                          className={inputCls + " pr-10"}
                           placeholder="••••••••"
                         />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPw(!showConfirmPw)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-crm-text-sub hover:text-crm-text-main transition-colors cursor-pointer"
+                          tabIndex={-1}
+                        >
+                          {showConfirmPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
                       </div>
                     </div>
                   </div>
