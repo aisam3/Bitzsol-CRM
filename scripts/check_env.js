@@ -29,10 +29,9 @@ const required = [
   "APIFY_LINKEDIN_ACTOR_ID",
   "APOLLO_API_URL",
   "APOLLO_API_KEY",
-  "LEADMAGIC_API_URL",
-  "LEADMAGIC_API_KEY",
 ];
-console.log("Checking required env variables:\n");
+const optional = ["LEADMAGIC_API_URL", "LEADMAGIC_API_KEY"];
+console.log("Checking env variables:\n");
 let allPresent = true;
 for (const k of required) {
   const v = vars[k];
@@ -44,8 +43,15 @@ for (const k of required) {
     console.log(`${k}: present (${masked})`);
   }
 }
+console.log("\nOptional variables:");
+for (const k of optional) {
+  const v = vars[k];
+  console.log(v ? `${k}: present` : `${k}: not configured (optional)`);
+}
 console.log(
   "\nSummary: " +
-    (allPresent ? "All required variables present" : "Some variables missing"),
+    (allPresent
+      ? "Required variables present"
+      : "Some required variables missing"),
 );
 process.exit(allPresent ? 0 : 1);

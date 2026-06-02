@@ -11,6 +11,7 @@ import {
   Award,
   Calendar,
   ArrowUpRight,
+  HelpCircle,
 } from "lucide-react";
 import type { AuthUser, DashboardStats, Lead, Pipeline } from "@/types";
 import { LeadModal } from "@/components/leads/LeadModal";
@@ -23,9 +24,18 @@ interface Props {
   onLeadCreated: () => void;
 }
 
-export function DashboardView({ user, stats, leads, pipelines, onLeadCreated }: Props) {
+export function DashboardView({
+  user,
+  stats,
+  leads,
+  pipelines,
+  onLeadCreated,
+}: Props) {
   const [showCreateLead, setShowCreateLead] = useState(false);
-  const [timeframe, setTimeframe] = useState<"week" | "month" | "year">("month");
+  const [timeframe, setTimeframe] = useState<"week" | "month" | "year">(
+    "month",
+  );
+  const [showExtensionDetails, setShowExtensionDetails] = useState(false);
 
   const leadsCount =
     timeframe === "week"
@@ -42,7 +52,6 @@ export function DashboardView({ user, stats, leads, pipelines, onLeadCreated }: 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-crm-text-sub text-sm">
-            {" "}
             <span className="text-crm-text-main font-bold">{user?.name}</span>
           </p>
         </div>
@@ -54,10 +63,11 @@ export function DashboardView({ user, stats, leads, pipelines, onLeadCreated }: 
               <button
                 key={t}
                 onClick={() => setTimeframe(t)}
-                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wide transition-all cursor-pointer ${timeframe === t
-                  ? "bg-[#0164DA] text-white"
-                  : "text-crm-text-sub hover:text-crm-text-main"
-                  }`}
+                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wide transition-all cursor-pointer ${
+                  timeframe === t
+                    ? "bg-[#0164DA] text-white"
+                    : "text-crm-text-sub hover:text-crm-text-main"
+                }`}
               >
                 {t}
               </button>
@@ -70,8 +80,45 @@ export function DashboardView({ user, stats, leads, pipelines, onLeadCreated }: 
           >
             <Plus className="w-3.5 h-3.5" /> Add Lead
           </button>
+
+          {/* Toggle button for extension instructions */}
+          <button
+            onClick={() => setShowExtensionDetails(!showExtensionDetails)}
+            className="flex items-center gap-1.5 px-3 py-2 bg-crm-panel border border-crm-border rounded-xl text-xs font-medium text-crm-text-sub hover:text-crm-text-main hover:border-crm-primary/40 transition-all"
+            title="Show/hide LinkedIn extension guide"
+          >
+            <HelpCircle className="w-3.5 h-3.5" />
+            <span className="hidden xs:inline">Extension Guide</span>
+            <span className="inline xs:hidden">Guide</span>
+          </button>
         </div>
       </div>
+
+      {/* ─── Bitzsol CRM LinkedIn Lead Capture Section (collapsible, at the top) ─── */}
+      {showExtensionDetails && (
+        <div className="glass p-4 sm:p-6 rounded-2xl shadow-md border border-crm-border/30">
+          <h3 className="text-sm sm:text-base font-bold text-crm-text-main">
+            Bitzsol CRM LinkedIn Lead Capture
+          </h3>
+          <p className="mt-2 text-xs sm:text-sm text-crm-text-sub max-w-2xl">
+            Use the Chrome extension to capture LinkedIn profile details and
+            sync leads directly into Bitzsol CRM. Open a LinkedIn profile first,
+            then use the extension popup to extract and send contact data.
+          </p>
+          <ol className="mt-3 space-y-2 text-xs sm:text-sm text-crm-text-sub list-decimal list-inside">
+            <li>Open a LinkedIn profile page in Chrome.</li>
+            <li>Click the Bitzsol CRM extension icon to open the popup.</li>
+            <li>
+              Use Copy Profile URL, Extract Profile Data, then Sync to CRM.
+            </li>
+          </ol>
+          <p className="mt-3 text-[11px] text-crm-text-sub">
+            Note: the extension popup is separate from the CRM website. The auth
+            token is generated from <code>/api/extension/token</code> while
+            logged into CRM.
+          </p>
+        </div>
+      )}
 
       {/* ─── Stat Cards ─── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
@@ -116,8 +163,12 @@ export function DashboardView({ user, stats, leads, pipelines, onLeadCreated }: 
                 key={s.status}
                 className="glass rounded-xl p-3 sm:p-4 flex flex-col gap-1 hover:shadow-md transition-all duration-300"
               >
-                <p className="text-[10px] sm:text-xs text-crm-text-sub truncate">{s.status}</p>
-                <p className="text-xl sm:text-2xl font-black text-crm-text-main">{s._count}</p>
+                <p className="text-[10px] sm:text-xs text-crm-text-sub truncate">
+                  {s.status}
+                </p>
+                <p className="text-xl sm:text-2xl font-black text-crm-text-main">
+                  {s._count}
+                </p>
               </div>
             ))}
           </div>
@@ -127,7 +178,9 @@ export function DashboardView({ user, stats, leads, pipelines, onLeadCreated }: 
       {/* ─── Recent Leads ─── */}
       <div className="glass p-4 sm:p-6 rounded-2xl shadow-md border border-crm-border/30">
         <div className="flex items-center justify-between mb-4 sm:mb-5">
-          <h3 className="text-sm sm:text-base font-bold text-crm-text-main">Recent Leads</h3>
+          <h3 className="text-sm sm:text-base font-bold text-crm-text-main">
+            Recent Leads
+          </h3>
           <span className="text-xs text-crm-text-sub bg-crm-panel-hover border border-crm-border px-2.5 py-1 rounded-lg font-bold">
             {stats?.totalLeads ?? 0} total
           </span>
@@ -150,15 +203,24 @@ export function DashboardView({ user, stats, leads, pipelines, onLeadCreated }: 
                 <thead>
                   <tr className="border-b border-crm-border text-[10px] font-bold text-crm-text-sub uppercase tracking-widest">
                     <th className="pb-3 text-left">Name</th>
-                    <th className="pb-3 text-left hidden md:table-cell">Pipeline</th>
-                    <th className="pb-3 text-left hidden lg:table-cell">Source</th>
+                    <th className="pb-3 text-left hidden md:table-cell">
+                      Pipeline
+                    </th>
+                    <th className="pb-3 text-left hidden lg:table-cell">
+                      Source
+                    </th>
                     <th className="pb-3 text-left">Status</th>
-                    <th className="pb-3 text-left hidden xl:table-cell">Created By</th>
+                    <th className="pb-3 text-left hidden xl:table-cell">
+                      Created By
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-crm-border/40">
                   {recentLeads.map((lead) => (
-                    <tr key={lead.id} className="hover:bg-crm-panel-hover/30 transition-colors">
+                    <tr
+                      key={lead.id}
+                      className="hover:bg-crm-panel-hover/30 transition-colors"
+                    >
                       <td className="py-3 pr-4">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-lg bg-crm-panel-hover border border-crm-border flex items-center justify-center text-[#0164DA] font-bold text-xs shrink-0">
@@ -213,7 +275,9 @@ export function DashboardView({ user, stats, leads, pipelines, onLeadCreated }: 
                         .join(" ")}
                     </p>
                     {lead.designation && (
-                      <p className="text-[10px] text-crm-text-sub">{lead.designation}</p>
+                      <p className="text-[10px] text-crm-text-sub">
+                        {lead.designation}
+                      </p>
                     )}
                     <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                       <StatusBadge status={lead.status} />
@@ -226,7 +290,9 @@ export function DashboardView({ user, stats, leads, pipelines, onLeadCreated }: 
                   </div>
                   <div className="text-[10px] text-crm-text-sub shrink-0 flex items-center gap-1">
                     <Calendar className="w-3 h-3" />
-                    {new Date(lead.date ?? lead.createdAt ?? "").toLocaleDateString("en-US", {
+                    {new Date(
+                      lead.date ?? lead.createdAt ?? "",
+                    ).toLocaleDateString("en-US", {
                       month: "short",
                       day: "numeric",
                     })}
@@ -263,23 +329,33 @@ export function DashboardView({ user, stats, leads, pipelines, onLeadCreated }: 
                       {dev.userName.substring(0, 2).toUpperCase()}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-bold text-crm-text-main truncate">{dev.userName}</p>
-                      <p className="text-[10px] text-crm-text-sub">#{i + 1} BD</p>
+                      <p className="text-sm font-bold text-crm-text-main truncate">
+                        {dev.userName}
+                      </p>
+                      <p className="text-[10px] text-crm-text-sub">
+                        #{i + 1} BD
+                      </p>
                     </div>
                     <ArrowUpRight className="w-4 h-4 text-[#03D9AF] ml-auto shrink-0" />
                   </div>
                   <div className="space-y-1.5 text-xs border-t border-crm-border/50 pt-3">
                     <div className="flex justify-between">
                       <span className="text-crm-text-sub">Total Leads</span>
-                      <span className="font-bold text-crm-text-main">{dev.totalLeads}</span>
+                      <span className="font-bold text-crm-text-main">
+                        {dev.totalLeads}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-crm-text-sub">This Month</span>
-                      <span className="font-bold text-[#03D9AF]">{dev.leadsThisMonth}</span>
+                      <span className="font-bold text-[#03D9AF]">
+                        {dev.leadsThisMonth}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-crm-text-sub">Statuses</span>
-                      <span className="font-bold text-[#0164DA]">{dev.leadsByStatus.length}</span>
+                      <span className="font-bold text-[#0164DA]">
+                        {dev.leadsByStatus.length}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -302,7 +378,7 @@ export function DashboardView({ user, stats, leads, pipelines, onLeadCreated }: 
   );
 }
 
-/* ─── Sub-components ─── */
+/* ─── Sub-components (unchanged) ─── */
 
 function StatCard({
   label,
@@ -335,7 +411,9 @@ function StatCard({
       <p className="text-2xl sm:text-3xl font-black text-crm-text-main leading-none">
         {value.toLocaleString()}
       </p>
-      {subtitle && <p className="text-[10px] text-crm-text-sub mt-1">{subtitle}</p>}
+      {subtitle && (
+        <p className="text-[10px] text-crm-text-sub mt-1">{subtitle}</p>
+      )}
       {trend && (
         <div className="flex items-center gap-1 mt-2">
           {trend === "up" ? (
@@ -344,8 +422,9 @@ function StatCard({
             <TrendingDown className="w-3 h-3 text-red-400" />
           )}
           <span
-            className={`text-[10px] font-bold ${trend === "up" ? "text-[#03D9AF]" : "text-red-400"
-              }`}
+            className={`text-[10px] font-bold ${
+              trend === "up" ? "text-[#03D9AF]" : "text-red-400"
+            }`}
           >
             Active
           </span>
@@ -363,9 +442,13 @@ function StatusBadge({ status }: { status: string }) {
     Closed: "bg-green-500/10 text-green-400 border-green-500/20",
     Lost: "bg-red-500/10 text-red-400 border-red-500/20",
   };
-  const cls = colorMap[status] ?? "bg-crm-panel-hover text-crm-text-sub border-crm-border";
+  const cls =
+    colorMap[status] ??
+    "bg-crm-panel-hover text-crm-text-sub border-crm-border";
   return (
-    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${cls}`}>
+    <span
+      className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${cls}`}
+    >
       {status}
     </span>
   );

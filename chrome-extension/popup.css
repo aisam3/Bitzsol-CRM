@@ -1,148 +1,74 @@
-:root {
-  color-scheme: dark;
-  font-family:
-    Inter,
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
+/* popup-custom.css - Professional gradients, status styles, animations */
+
+/* Custom scrollbar (optional) */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }
 
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  min-width: 360px;
-  background: #111827;
-  color: #f8fafc;
-}
-
-.container {
-  padding: 16px;
-}
-
-header h1 {
-  margin: 0;
-  font-size: 1.2rem;
-}
-
-header p {
-  margin: 4px 0 12px;
-  color: #94a3b8;
-  font-size: 0.88rem;
-}
-
-.card {
-  background: rgba(15, 23, 42, 0.95);
-  border: 1px solid rgba(148, 163, 184, 0.15);
-  border-radius: 16px;
-  padding: 14px;
-  margin-bottom: 12px;
-}
-
-.card h2 {
-  margin: 0 0 10px;
-  font-size: 0.98rem;
-}
-
-label {
-  display: block;
-  margin-bottom: 10px;
-  font-size: 0.82rem;
-  color: #cbd5e1;
-}
-
-input,
-textarea {
-  width: 100%;
-  margin-top: 6px;
+/* Status box dynamic classes (used by popup.js) */
+.status-box {
   padding: 10px 12px;
-  border: 1px solid rgba(148, 163, 184, 0.2);
   border-radius: 12px;
-  background: #0f172a;
-  color: #f8fafc;
-  resize: vertical;
-  font-size: 0.92rem;
-}
-
-select {
-  width: 100%;
-  margin-top: 6px;
-  padding: 10px 12px;
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  border-radius: 12px;
-  background: #0f172a;
-  color: #f8fafc;
-  font-size: 0.92rem;
-}
-
-button {
-  border: none;
-  border-radius: 12px;
-  padding: 10px 14px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-button.primary {
-  background: #2563eb;
-  color: white;
-}
-
-button.secondary {
-  background: #1e293b;
-  color: #f8fafc;
-}
-
-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.actions {
+  font-size: 13px;
   display: flex;
+  align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
+}
+.status-box.info {
+  background: #e0f2fe;
+  border-left: 4px solid #0164da;
+  color: #075985;
+}
+.status-box.success {
+  background: #d1fae5;
+  border-left: 4px solid #03d9af;
+  color: #065f46;
+}
+.status-box.error {
+  background: #fee2e2;
+  border-left: 4px solid #ef4444;
+  color: #991b1b;
+}
+.status-box.warning {
+  background: #fed7aa;
+  border-left: 4px solid #f59e0b;
+  color: #9a3412;
 }
 
-.hint {
-  margin: 0;
-  color: #94a3b8;
-  font-size: 0.8rem;
+/* Loading spinner */
+.loading-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid #e2e8f0;
+  border-top-color: #03d9af;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
-.summary {
-  margin-top: 10px;
-  border-top: 1px solid rgba(148, 163, 184, 0.15);
-  padding-top: 10px;
-  font-size: 0.9rem;
-  line-height: 1.45;
+/* Hover lift for cards */
+.card-lift {
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
-
-.summary a {
-  color: #60a5fa;
-  text-decoration: underline;
-}
-
-.summary.hidden {
-  display: none;
-}
-
-.card-status {
-  min-height: 48px;
-}
-
-#status {
-  color: #cbd5e1;
-  font-size: 0.88rem;
-}
-
-code {
-  background: rgba(148, 163, 184, 0.12);
-  padding: 2px 5px;
-  border-radius: 6px;
+.card-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
 }

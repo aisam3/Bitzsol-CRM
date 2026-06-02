@@ -1,315 +1,421 @@
-const DEFAULT_CRM_URL = "http://localhost:3000";
-const crmUrlInput = document.getElementById("crmUrl");
-const authTokenInput = document.getElementById("authToken");
-const saveSettingsButton = document.getElementById("saveSettings");
-const extractProfileButton = document.getElementById("extractProfile");
-const enrichDataButton = document.getElementById("enrichData");
-const syncLeadButton = document.getElementById("syncLead");
-const profileSummary = document.getElementById("profileSummary");
-const statusEl = document.getElementById("status");
+/**
+ * Bitzsol CRM Extension - Popup Script
+ * Fully functional with error handling and fallbacks
+ */
+
+// ========== Constants & Elements ==========
+
+const ENRICHMENT_SERVICES = {
+  apify: { name: "Apify", configKeys: ["apifyToken", "apifyActorId"] },
+  apollo: { name: "Apollo", configKeys: ["apolloUrl", "apolloKey"] },
+  leadmagic: {
+    name: "LeadMagic",
+    configKeys: ["leadmagicUrl", "leadmagicKey"],
+  },
+};
+
+// DOM Elements
+const extractBtn = document.getElementById("extractBtn");
+const copyLinkBtn = document.getElementById("copyLinkBtn");
+const enrichApifyBtn = document.getElementById("enrichApifyBtn");
+const enrichApolloBtn = document.getElementById("enrichApolloBtn");
+const enrichLeadmagicBtn = document.getElementById("enrichLeadmagicBtn");
+const enrichmentStatus = document.getElementById("enrichmentStatus");
+const leadForm = document.getElementById("leadForm");
 const firstNameInput = document.getElementById("firstName");
 const lastNameInput = document.getElementById("lastName");
-const designationInput = document.getElementById("designation");
-const sourceLinkInput = document.getElementById("sourceLink");
+const headlineInput = document.getElementById("headline");
+const companyInput = document.getElementById("company");
+const locationInput = document.getElementById("location");
 const emailsInput = document.getElementById("emails");
 const phonesInput = document.getElementById("phones");
+const profileUrlInput = document.getElementById("profileUrl");
+const aboutInput = document.getElementById("about");
 const pipelineSelect = document.getElementById("pipelineId");
+const profileSummary = document.getElementById("profileSummary");
+const statusMessage = document.getElementById("statusMessage");
 
-function setStatus(message, error = false) {
-  statusEl.textContent = message;
-  statusEl.style.color = error ? "#f87171" : "#cbd5e1";
+// ========== Utility Functions ==========
+
+function showStatus(message, type = "info") {
+  statusMessage.textContent = message;
+  statusMessage.className = `text-sm ${type === "error" ? "text-red-600" : type === "success" ? "text-green-600" : "text-blue-600"}`;
+  console.log(`[${type.toUpperCase()}] ${message}`);
 }
 
-function getSettings() {
-  return new Promise((resolve) => {
-    chrome.storage.local.get(["crmUrl", "authToken"], (items) => {
-      resolve({
-        crmUrl: items.crmUrl || DEFAULT_CRM_URL,
-        authToken: items.authToken || "",
-      });
-    });
-  });
+function showEnrichmentStatus(message, type = "info") {
+  if (!enrichmentStatus) return;
+  enrichmentStatus.textContent = message;
+  enrichmentStatus.className = `status-box ${type} ${type === "hidden" ? "hidden" : ""}`;
+  if (type !== "hidden") enrichmentStatus.classList.remove("hidden");
 }
 
-function saveSettings(crmUrl, authToken) {
-  chrome.storage.local.set({ crmUrl, authToken });
+async function getActiveTab() {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  return tab;
 }
 
-async function loadPipelines(crmUrl, authToken) {
-  if (!pipelineSelect) return;
-  pipelineSelect.innerHTML = '<option value="">Select pipeline</option>';
-  if (!authToken) return;
-
-  try {
-    const response = await fetch(`${crmUrl.replace(/\/$/, "")}/api/pipelines`, {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
-    const data = await response.json();
-    if (!response.ok || !Array.isArray(data.data)) {
-      setStatus(data.error || "Unable to load pipelines.", true);
-      return;
-    }
-
-    data.data.forEach((pipeline) => {
-      const option = document.createElement("option");
-      option.value = pipeline.id;
-      option.textContent = pipeline.name;
-      pipelineSelect.appendChild(option);
-    });
-  } catch (error) {
-    console.error(error);
-    setStatus("Unable to load pipelines.", true);
-  }
+function isLinkedInProfile(url) {
+  if (!url) return false;
+  const urlObj = new URL(url);
+  return (
+    urlObj.hostname.includes("linkedin.com") && urlObj.pathname.includes("/in/")
+  );
 }
 
-async function loadSettings() {
-  const settings = await getSettings();
-  crmUrlInput.value = settings.crmUrl;
-  authTokenInput.value = settings.authToken;
-  await loadPipelines(settings.crmUrl, settings.authToken);
-}
-
-function parseCommaSeparated(value) {
+function parseList(value) {
+  if (!value) return [];
   return value
     .split(/[,\n;]/)
     .map((item) => item.trim())
     .filter(Boolean);
 }
 
-function fillProfileFields(profile) {
-  if (!profile) return;
-  const [first, ...rest] = profile.name?.split(" ") || [];
-  firstNameInput.value = first || "";
-  lastNameInput.value = rest.join(" ") || "";
-  designationInput.value = profile.title || "";
-  sourceLinkInput.value = profile.profileUrl || "";
-  emailsInput.value = (profile.emails || []).join(", ");
-  phonesInput.value = (profile.phones || []).join(", ");
-  profileSummary.classList.remove("hidden");
-  profileSummary.innerHTML = `
-    <p><strong>Name:</strong> ${profile.name || "Unknown"}</p>
-    <p><strong>Title:</strong> ${profile.title || "Unknown"}</p>
-    <p><strong>Location:</strong> ${profile.location || "Unknown"}</p>
-    <p><strong>Company:</strong> ${profile.company || "Unknown"}</p>
-    <p><strong>Profile URL:</strong> <a href="${profile.profileUrl}" target="_blank">Open profile</a></p>
-    <p><strong>Emails:</strong> ${(profile.emails || []).join(", ") || "None"}</p>
-    <p><strong>Phones:</strong> ${(profile.phones || []).join(", ") || "None"}</p>
-  `;
+function loadSettings() {
+  return new Promise((resolve) => {
+    chrome.storage.sync.get(
+      [
+        "crmUrl",
+        "crmApiKey",
+        "apifyToken",
+        "apifyActorId",
+        "apolloUrl",
+        "apolloKey",
+        "leadmagicUrl",
+        "leadmagicKey",
+      ],
+      (items) => resolve(items || {}),
+    );
+  });
 }
 
-async function getCurrentTab() {
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  return tab;
-}
-
-async function extractLinkedInProfile() {
-  setStatus("Extracting LinkedIn profile...");
-  const tab = await getCurrentTab();
-  if (!tab || !tab.url || !tab.url.includes("linkedin.com/in/")) {
-    setStatus("Open a LinkedIn profile page first.", true);
-    return;
-  }
-
+async function loadPipelines() {
   try {
-    // First try messaging the content script (more robust)
-    let profile = null;
-    try {
-      const msg = await new Promise((resolve, reject) => {
-        chrome.tabs.sendMessage(tab.id, { type: "extract_profile" }, (resp) => {
-          if (chrome.runtime.lastError) return reject(chrome.runtime.lastError);
-          resolve(resp);
-        });
-      });
-      if (msg && msg.ok) profile = msg.data;
-    } catch (err) {
-      console.debug("content script message failed, falling back", err);
-    }
-
-    // Fallback: execute a short script if content script not available
-    if (!profile) {
-      const [result] = await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        func: () => {
-          const trimText = (sel) => {
-            const el = document.querySelector(sel);
-            return el?.textContent?.trim() || "";
-          };
-
-          const profileUrl = window.location.href;
-          const name = trimText("div.ph5 h1") || trimText("h1");
-          const title =
-            trimText("div.ph5 .text-body-medium") ||
-            trimText("div.text-body-medium.break-words");
-          const location =
-            trimText(
-              "div.ph5 .text-body-small.inline.t-black--light.break-words",
-            ) || trimText("span.text-body-small");
-          const company =
-            trimText("section.pv-top-card-section__experience-list li") || "";
-          const emails = Array.from(
-            document.querySelectorAll('a[href^="mailto:"]'),
-          ).map((link) => link.href.replace(/^mailto:/i, "").trim());
-          const phones = Array.from(
-            document.querySelectorAll('[href^="tel:"]'),
-          ).map((link) => link.href.replace(/^tel:/i, "").trim());
-
-          return { name, title, location, company, emails, phones, profileUrl };
-        },
-      });
-      profile = result.result;
-    }
-
-    if (!profile || !profile.name) {
-      setStatus("Could not detect profile fields on this page.", true);
+    const settings = await loadSettings();
+    if (!settings.crmUrl || !settings.crmApiKey) {
+      pipelineSelect.innerHTML =
+        '<option value="">Configure settings first</option>';
       return;
     }
 
-    fillProfileFields(profile);
-    setStatus("LinkedIn profile extracted successfully.");
-  } catch (error) {
-    console.error(error);
-    setStatus(
-      "Extraction failed. Make sure LinkedIn is open and accessible.",
-      true,
-    );
-  }
-}
+    const response = await fetch(`${settings.crmUrl}/api/pipelines`, {
+      headers: { Authorization: `Bearer ${settings.crmApiKey}` },
+    });
 
-async function enrichWithApify() {
-  setStatus("Requesting enrichment from CRM backend...");
-  const crmUrl = crmUrlInput.value.trim() || DEFAULT_CRM_URL;
-  const authToken = authTokenInput.value.trim();
-
-  if (!authToken) {
-    setStatus("Auth token is required for enrichment.", true);
-    return;
-  }
-
-  const tab = await getCurrentTab();
-  if (!tab || !tab.url || !tab.url.includes("linkedin.com/in/")) {
-    setStatus("Open a LinkedIn profile page first.", true);
-    return;
-  }
-
-  try {
-    const response = await fetch(
-      `${crmUrl.replace(/\/$/, "")}/api/extension/enrich`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${authToken}`,
-        },
-        body: JSON.stringify({ profileUrl: tab.url, enrichService: "apify" }),
-      },
-    );
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
     const data = await response.json();
-    if (!response.ok) {
-      setStatus(data.error || "Enrichment failed.", true);
+    // Support both { data: [] } and direct array
+    const pipelines = Array.isArray(data) ? data : data.data || [];
+
+    if (!pipelines.length) {
+      pipelineSelect.innerHTML = '<option value="">No pipelines found</option>';
       return;
     }
 
-    const enrichment = data.data || data;
-    const merged = {
-      name:
-        enrichment.name ||
-        `${firstNameInput.value} ${lastNameInput.value}`.trim(),
-      title:
-        enrichment.title || enrichment.designation || designationInput.value,
-      profileUrl: enrichment.profileUrl || sourceLinkInput.value,
-      emails: enrichment.emails || parseCommaSeparated(emailsInput.value),
-      phones: enrichment.phones || parseCommaSeparated(phonesInput.value),
-    };
-
-    fillProfileFields(merged);
-    setStatus("Enrichment completed. Review and sync to CRM.");
+    pipelineSelect.innerHTML = '<option value="">Select a pipeline</option>';
+    pipelines.forEach((pipeline) => {
+      const option = document.createElement("option");
+      option.value = pipeline.id;
+      option.textContent = pipeline.name;
+      pipelineSelect.appendChild(option);
+    });
   } catch (error) {
-    console.error(error);
-    setStatus("Enrichment request failed.", true);
+    console.error("Error loading pipelines:", error);
+    pipelineSelect.innerHTML =
+      '<option value="">Error loading pipelines</option>';
+    showStatus("Could not load pipelines. Check CRM settings.", "error");
   }
 }
 
-async function syncLead() {
-  setStatus("Syncing lead to CRM...");
-  const crmUrl = crmUrlInput.value.trim() || DEFAULT_CRM_URL;
-  const authToken = authTokenInput.value.trim();
+function displayProfileSummary(profile) {
+  document.getElementById("summaryName").textContent = profile.name || "—";
+  document.getElementById("summaryHeadline").textContent =
+    profile.headline || "—";
+  document.getElementById("summaryCompany").textContent =
+    profile.company || "—";
+  document.getElementById("summaryLocation").textContent =
+    profile.location || "—";
+  document.getElementById("summaryEmails").textContent = profile.emails?.length
+    ? profile.emails.join(", ")
+    : "—";
+  document.getElementById("summaryPhones").textContent = profile.phones?.length
+    ? profile.phones.join(", ")
+    : "—";
+  profileSummary.classList.remove("hidden");
+}
 
-  if (!authToken) {
-    setStatus("Auth token is required to sync.", true);
+function fillForm(profile) {
+  if (!profile) return;
+
+  const nameParts = (profile.name || "").trim().split(/\s+/);
+  firstNameInput.value = nameParts[0] || "";
+  lastNameInput.value = nameParts.slice(1).join(" ") || "";
+
+  headlineInput.value = profile.headline || "";
+  companyInput.value = profile.company || "";
+  locationInput.value = profile.location || "";
+  emailsInput.value = profile.emails?.length ? profile.emails.join("\n") : "";
+  phonesInput.value = profile.phones?.length ? profile.phones.join("\n") : "";
+  profileUrlInput.value = profile.profileUrl || "";
+  aboutInput.value = profile.about || "";
+
+  displayProfileSummary(profile);
+  showStatus("Profile data loaded successfully.", "success");
+}
+
+// ========== Profile Extraction ==========
+async function ensureContentScript(tabId) {
+  try {
+    // Try to ping the content script
+    await new Promise((resolve, reject) => {
+      chrome.tabs.sendMessage(tabId, { type: "PING" }, (response) => {
+        if (chrome.runtime.lastError) reject(chrome.runtime.lastError);
+        else resolve(response);
+      });
+    });
+    return true; // already injected
+  } catch {
+    // Not injected – inject it now
+    await chrome.scripting.executeScript({
+      target: { tabId },
+      files: ["content.js"],
+    });
+    // Give it a moment to initialize
+    await new Promise((r) => setTimeout(r, 200));
+    return true;
+  }
+}
+
+async function extractProfile() {
+  try {
+    showStatus("Extracting profile data...", "info");
+    const tab = await getActiveTab();
+    if (!isLinkedInProfile(tab?.url)) {
+      showStatus("Please open a LinkedIn profile page first.", "error");
+      return;
+    }
+    // Ensure content script is running
+    await ensureContentScript(tab.id);
+
+    // Now send extraction message
+    const response = await new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => reject(new Error("Timeout")), 10000);
+      chrome.tabs.sendMessage(tab.id, { type: "EXTRACT_PROFILE" }, (res) => {
+        clearTimeout(timeout);
+        if (chrome.runtime.lastError) reject(chrome.runtime.lastError);
+        else resolve(res);
+      });
+    });
+
+    if (!response?.ok) throw new Error(response?.error || "Extraction failed");
+    fillForm(response.data);
+  } catch (err) {
+    console.error(err);
+    showStatus(`Extraction failed: ${err.message}`, "error");
+  }
+}
+// ========== Enrichment ==========
+
+async function enrichProfile(service) {
+  const tab = await getActiveTab();
+  if (!isLinkedInProfile(tab?.url)) {
+    showStatus("Please open a LinkedIn profile page first.", "error");
     return;
   }
 
-  const firstName = firstNameInput.value.trim();
-  const lastName = lastNameInput.value.trim();
-  if (!firstName) {
-    setStatus("First name is required.", true);
-    return;
-  }
-  if (!pipelineSelect?.value) {
-    setStatus("Please select a pipeline before syncing.", true);
+  const serviceName = ENRICHMENT_SERVICES[service]?.name || service;
+  showEnrichmentStatus(`Enriching with ${serviceName}...`, "info");
+
+  const settings = await loadSettings();
+  let enrichConfig = { service, profileUrl: tab.url };
+
+  // Validate credentials
+  if (service === "apify") {
+    if (!settings.apifyToken || !settings.apifyActorId) {
+      showEnrichmentStatus(
+        "Apify credentials missing. Set them in Options.",
+        "error",
+      );
+      return;
+    }
+    enrichConfig.apiToken = settings.apifyToken;
+    enrichConfig.actorId = settings.apifyActorId;
+  } else if (service === "apollo") {
+    if (!settings.apolloUrl || !settings.apolloKey) {
+      showEnrichmentStatus(
+        "Apollo credentials missing. Set them in Options.",
+        "error",
+      );
+      return;
+    }
+    enrichConfig.apiUrl = settings.apolloUrl;
+    enrichConfig.apiKey = settings.apolloKey;
+  } else if (service === "leadmagic") {
+    if (!settings.leadmagicUrl || !settings.leadmagicKey) {
+      showEnrichmentStatus(
+        "LeadMagic credentials missing. Set them in Options.",
+        "error",
+      );
+      return;
+    }
+    enrichConfig.apiUrl = settings.leadmagicUrl;
+    enrichConfig.apiKey = settings.leadmagicKey;
+  } else {
+    showEnrichmentStatus(`Unknown enrichment service: ${service}`, "error");
     return;
   }
 
-  const payload = {
-    firstName,
-    middleName: "",
-    lastName,
-    designation: designationInput.value.trim(),
-    sourceLink: sourceLinkInput.value.trim(),
-    leadSource: "LinkedIn",
-    status: "New",
-    pipelineId: pipelineSelect?.value || "",
-    emails: parseCommaSeparated(emailsInput.value).map((email) => ({
+  try {
+    const enrichmentResult = await new Promise((resolve, reject) => {
+      const timeout = setTimeout(
+        () => reject(new Error("Enrichment timeout (30s)")),
+        30000,
+      );
+      chrome.runtime.sendMessage(
+        { type: "ENRICH_LEAD", ...enrichConfig },
+        (response) => {
+          clearTimeout(timeout);
+          if (chrome.runtime.lastError) reject(chrome.runtime.lastError);
+          else if (response?.success) resolve(response.data);
+          else reject(new Error(response?.error || "Unknown enrichment error"));
+        },
+      );
+    });
+
+    // Merge existing data with enrichment
+    const enrichedProfile = {
+      name:
+        enrichmentResult.name ||
+        `${firstNameInput.value} ${lastNameInput.value}`.trim(),
+      headline:
+        enrichmentResult.headline ||
+        enrichmentResult.jobTitle ||
+        headlineInput.value,
+      company: enrichmentResult.company || companyInput.value,
+      location: enrichmentResult.location || locationInput.value,
+      about:
+        enrichmentResult.about ||
+        enrichmentResult.description ||
+        aboutInput.value,
+      emails: enrichmentResult.emails?.length
+        ? enrichmentResult.emails
+        : parseList(emailsInput.value),
+      phones: enrichmentResult.phones?.length
+        ? enrichmentResult.phones
+        : parseList(phonesInput.value),
+      profileUrl: tab.url,
+    };
+    fillForm(enrichedProfile);
+    showEnrichmentStatus(`✓ Enriched with ${serviceName}`, "success");
+  } catch (error) {
+    console.error(`Enrichment error (${service}):`, error);
+    showEnrichmentStatus(`Enrichment failed: ${error.message}`, "error");
+  }
+}
+
+// ========== CRM Sync ==========
+
+async function syncLead(event) {
+  event.preventDefault();
+
+  if (!firstNameInput.value.trim()) {
+    showStatus("First name is required.", "error");
+    return;
+  }
+  if (!pipelineSelect.value) {
+    showStatus("Please select a pipeline.", "error");
+    return;
+  }
+
+  showStatus("Syncing lead to CRM...", "info");
+
+  const settings = await loadSettings();
+  if (!settings.crmUrl || !settings.crmApiKey) {
+    showStatus("CRM credentials missing. Go to settings.", "error");
+    return;
+  }
+
+  const leadData = {
+    firstName: firstNameInput.value.trim(),
+    lastName: lastNameInput.value.trim(),
+    headline: headlineInput.value.trim(),
+    company: companyInput.value.trim(),
+    location: locationInput.value.trim(),
+    about: aboutInput.value.trim(),
+    pipelineId: pipelineSelect.value,
+    sourceLink: profileUrlInput.value.trim(),
+    emails: parseList(emailsInput.value).map((email) => ({
       email,
       status: "Not_Verified",
     })),
-    phones: parseCommaSeparated(phonesInput.value).map((phone) => ({
+    phones: parseList(phonesInput.value).map((phone) => ({
       phone,
       status: "Not_Verified",
     })),
-    customFields: [],
   };
 
   try {
-    const response = await fetch(`${crmUrl.replace(/\/$/, "")}/api/leads`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${authToken}`,
-      },
-      body: JSON.stringify(payload),
+    const syncResult = await new Promise((resolve, reject) => {
+      const timeout = setTimeout(
+        () => reject(new Error("Sync timeout (10s)")),
+        10000,
+      );
+      chrome.runtime.sendMessage(
+        {
+          type: "SYNC_LEAD",
+          crmUrl: settings.crmUrl,
+          crmApiKey: settings.crmApiKey,
+          leadData,
+        },
+        (response) => {
+          clearTimeout(timeout);
+          if (chrome.runtime.lastError) reject(chrome.runtime.lastError);
+          else if (response?.success) resolve(response.data);
+          else reject(new Error(response?.error || "Sync failed"));
+        },
+      );
     });
 
-    const data = await response.json();
-    if (!response.ok) {
-      setStatus(data.error || "Sync failed.", true);
-      return;
-    }
-
-    setStatus("Lead synced successfully to Bitzsol CRM.");
+    showStatus(
+      `✓ Lead synced! ID: ${syncResult.id || syncResult._id}`,
+      "success",
+    );
+    leadForm.reset();
+    profileSummary.classList.add("hidden");
   } catch (error) {
-    console.error(error);
-    setStatus("Unable to reach CRM API.", true);
+    console.error("Sync error:", error);
+    showStatus(`Sync failed: ${error.message}`, "error");
   }
 }
 
-saveSettingsButton.addEventListener("click", async () => {
-  saveSettings(
-    crmUrlInput.value.trim() || DEFAULT_CRM_URL,
-    authTokenInput.value.trim(),
-  );
-  await loadPipelines(
-    crmUrlInput.value.trim() || DEFAULT_CRM_URL,
-    authTokenInput.value.trim(),
-  );
-  setStatus("Settings saved.");
+// ========== Event Listeners ==========
+
+extractBtn?.addEventListener("click", extractProfile);
+
+copyLinkBtn?.addEventListener("click", async () => {
+  const tab = await getActiveTab();
+  if (!isLinkedInProfile(tab?.url)) {
+    showStatus("Open a LinkedIn profile first.", "error");
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(tab.url);
+    showStatus("Profile URL copied.", "success");
+  } catch {
+    showStatus("Copy failed.", "error");
+  }
 });
 
-extractProfileButton.addEventListener("click", extractLinkedInProfile);
-enrichDataButton.addEventListener("click", enrichWithApify);
-syncLeadButton.addEventListener("click", syncLead);
+enrichApifyBtn?.addEventListener("click", () => enrichProfile("apify"));
+enrichApolloBtn?.addEventListener("click", () => enrichProfile("apollo"));
+enrichLeadmagicBtn?.addEventListener("click", () => enrichProfile("leadmagic"));
 
-loadSettings().then(() =>
-  setStatus("Ready. Open a LinkedIn profile to begin."),
-);
+leadForm?.addEventListener("submit", syncLead);
+
+// ========== Initialize ==========
+
+document.addEventListener("DOMContentLoaded", () => {
+  loadPipelines();
+  showStatus("Ready. Open a LinkedIn profile and click Extract.", "info");
+});

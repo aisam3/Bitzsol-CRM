@@ -3,96 +3,177 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Bitzsol CRM LinkedIn Sync</title>
+    <title>Bitzsol CRM - LinkedIn Lead Sync</title>
     <link rel="stylesheet" href="popup.css" />
   </head>
   <body>
     <div class="container">
-      <header>
-        <h1>Bitzsol CRM</h1>
-        <p>Sync LinkedIn profile contacts to your CRM.</p>
+      <!-- Header -->
+      <header class="header">
+        <div class="header-content">
+          <h1 class="title">Bitzsol CRM</h1>
+          <p class="subtitle">LinkedIn Lead Sync</p>
+        </div>
+        <a
+          href="options.html"
+          target="_blank"
+          class="settings-link"
+          title="Settings"
+          >⚙️</a
+        >
       </header>
 
-      <section class="card">
-        <h2>CRM Settings</h2>
-        <label>
-          CRM Base URL
-          <input id="crmUrl" placeholder="https://localhost:3000" />
-        </label>
-        <label>
-          Auth Token
-          <textarea
-            id="authToken"
-            rows="3"
-            placeholder="Paste auth token from Bitzsol CRM"
-          ></textarea>
-        </label>
-        <p class="hint">
-          Get a token from <code>/api/extension/token</code> while logged into
-          Bitzsol CRM.
-        </p>
-        <button id="saveSettings" class="primary">Save Settings</button>
+      <!-- Quick Start -->
+      <section class="card card-info">
+        <h3 class="section-title">Quick Start</h3>
+        <ol class="instructions">
+          <li>Open a LinkedIn profile page</li>
+          <li>Click "Extract Profile Data" below</li>
+          <li>Optionally enrich with Apify, Apollo, or LeadMagic</li>
+          <li>Review and click "Sync to CRM"</li>
+        </ol>
       </section>
 
+      <!-- LinkedIn Profile -->
       <section class="card">
-        <h2>LinkedIn Profile</h2>
-        <button id="extractProfile" class="primary">
-          Extract Profile Data
-        </button>
-        <div id="profileSummary" class="summary hidden"></div>
-      </section>
-
-      <section class="card">
-        <h2>Lead Sync</h2>
-        <label>
-          First Name
-          <input id="firstName" />
-        </label>
-        <label>
-          Last Name
-          <input id="lastName" />
-        </label>
-        <label>
-          Title
-          <input id="designation" placeholder="Designation / Title" />
-        </label>
-        <label>
-          Pipeline
-          <select id="pipelineId">
-            <option value="">Select pipeline</option>
-          </select>
-        </label>
-        <label>
-          Company
-          <input id="sourceLink" placeholder="Company or profile URL" />
-        </label>
-        <label>
-          Email(s)
-          <textarea
-            id="emails"
-            rows="3"
-            placeholder="comma separated emails"
-          ></textarea>
-        </label>
-        <label>
-          Phone(s)
-          <textarea
-            id="phones"
-            rows="3"
-            placeholder="comma separated phone numbers"
-          ></textarea>
-        </label>
-        <div class="actions">
-          <button id="enrichData" class="secondary">Enrich with Apify</button>
-          <button id="syncLead" class="primary">Sync to CRM</button>
+        <h3 class="section-title">LinkedIn Profile</h3>
+        <div class="button-group">
+          <button id="extractBtn" class="btn btn-primary">
+            📋 Extract Profile Data
+          </button>
+          <button id="copyLinkBtn" class="btn btn-secondary">
+            🔗 Copy Profile URL
+          </button>
+        </div>
+        <div id="profileSummary" class="profile-summary hidden">
+          <div class="summary-row">
+            <span class="label">Name:</span
+            ><span id="summaryName" class="value">—</span>
+          </div>
+          <div class="summary-row">
+            <span class="label">Headline:</span
+            ><span id="summaryHeadline" class="value">—</span>
+          </div>
+          <div class="summary-row">
+            <span class="label">Company:</span
+            ><span id="summaryCompany" class="value">—</span>
+          </div>
+          <div class="summary-row">
+            <span class="label">Location:</span
+            ><span id="summaryLocation" class="value">—</span>
+          </div>
+          <div class="summary-row">
+            <span class="label">Emails:</span
+            ><span id="summaryEmails" class="value">—</span>
+          </div>
+          <div class="summary-row">
+            <span class="label">Phones:</span
+            ><span id="summaryPhones" class="value">—</span>
+          </div>
         </div>
       </section>
 
+      <!-- Enrichment -->
+      <section class="card">
+        <h3 class="section-title">Enrich Lead (Optional)</h3>
+        <p class="section-help">
+          Use external services to find additional contact info
+        </p>
+        <div class="enrichment-buttons">
+          <button id="enrichApifyBtn" class="btn btn-secondary btn-small">
+            Apify
+          </button>
+          <button id="enrichApolloBtn" class="btn btn-secondary btn-small">
+            Apollo
+          </button>
+          <button id="enrichLeadmagicBtn" class="btn btn-secondary btn-small">
+            LeadMagic
+          </button>
+        </div>
+        <div id="enrichmentStatus" class="status-box hidden"></div>
+      </section>
+
+      <!-- Lead Details Form -->
+      <section class="card">
+        <h3 class="section-title">Lead Details</h3>
+        <form id="leadForm" class="form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="firstName">First Name *</label
+              ><input type="text" id="firstName" class="input" required />
+            </div>
+            <div class="form-group">
+              <label for="lastName">Last Name *</label
+              ><input type="text" id="lastName" class="input" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="headline">Headline</label
+            ><input
+              type="text"
+              id="headline"
+              class="input"
+              placeholder="Job title"
+            />
+          </div>
+          <div class="form-group">
+            <label for="company">Company</label
+            ><input type="text" id="company" class="input" />
+          </div>
+          <div class="form-group">
+            <label for="location">Location</label
+            ><input type="text" id="location" class="input" />
+          </div>
+          <div class="form-group">
+            <label for="emails">Email(s)</label
+            ><textarea
+              id="emails"
+              class="textarea"
+              rows="2"
+              placeholder="Comma or newline separated"
+            ></textarea>
+          </div>
+          <div class="form-group">
+            <label for="phones">Phone(s)</label
+            ><textarea
+              id="phones"
+              class="textarea"
+              rows="2"
+              placeholder="Comma or newline separated"
+            ></textarea>
+          </div>
+          <div class="form-group">
+            <label for="profileUrl">LinkedIn URL</label
+            ><input type="url" id="profileUrl" class="input" />
+          </div>
+          <div class="form-group">
+            <label for="about">About</label
+            ><textarea
+              id="about"
+              class="textarea"
+              rows="2"
+              placeholder="Profile summary"
+            ></textarea>
+          </div>
+          <div class="form-group">
+            <label for="pipelineId">Pipeline *</label
+            ><select id="pipelineId" class="input" required>
+              <option value="">Loading pipelines...</option>
+            </select>
+          </div>
+          <div class="button-group">
+            <button type="submit" class="btn btn-primary btn-full">
+              ✓ Sync to CRM
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Status -->
       <section class="card card-status">
-        <div id="status"></div>
+        <div id="statusMessage" class="status-message"></div>
       </section>
     </div>
-
     <script src="popup.js"></script>
   </body>
 </html>
