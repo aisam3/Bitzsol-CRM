@@ -458,7 +458,7 @@ export function LeadsView({ user, leads: initialLeads, pipelines, onRefresh }: P
                           <div className="space-y-0.5">
                             {lead.emails.slice(0, 1).map((e) => (
                               <div key={e.id} className="flex items-center gap-1.5">
-                                <span className="text-xs text-crm-text-sub truncate max-w-[130px]">{e.email}</span>
+                                <span className="text-xs text-crm-text-sub">{e.email}</span>
                                 <span className={`text-[0.72rem] font-bold px-1 py-0.5 rounded ${e.status === "Verified" ? "text-[#03D9AF] bg-[#03D9AF]/10" : "text-[#F59E0B] bg-[#F59E0B]/10"}`}>
                                   {e.status === "Verified" ? "✓" : "?"}
                                 </span>
