@@ -1,34 +1,29 @@
 {
   "manifest_version": 3,
-  "name": "Bitzsol CRM - LinkedIn Lead Sync",
-  "version": "2.0.0",
-  "description": "Extract LinkedIn profile data with enrichment and sync leads directly to Bitzsol CRM.",
-  "permissions": ["activeTab", "scripting", "storage", "tabs"],
+  "name": "LinkedIn Lead Extractor",
+  "version": "1.0.0",
+  "description": "Extract LinkedIn contacts via Apify, enrich with Apollo, sync to Bitzsol CRM.",
+  "permissions": ["activeTab", "cookies", "storage"],
   "host_permissions": [
-    "https://*.linkedin.com/*",
+    "https://www.linkedin.com/*",
     "https://api.apify.com/*",
     "https://api.apollo.io/*",
-    "https://api.leadmagic.com/*",
-    "http://localhost:3000/*",
-    "https://localhost:3000/*",
-    "https://*.bitzsol.com/*"
+    "https://api.bitzsol.com/*"
   ],
   "background": {
     "service_worker": "background.js"
   },
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Bitzsol CRM - Sync LinkedIn Lead"
+    "default_title": "Extract LinkedIn Lead"
   },
   "options_ui": {
     "page": "options.html",
-    "open_in_tab": false
+    "open_in_tab": true
   },
-  "content_scripts": [
-    {
-      "matches": ["https://*.linkedin.com/in/*"],
-      "js": ["content.js"],
-      "run_at": "document_idle"
-    }
-  ]
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  }
 }

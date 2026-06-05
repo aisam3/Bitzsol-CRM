@@ -1,179 +1,268 @@
 <!doctype html>
-<html lang="en">
+<html>
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Bitzsol CRM - LinkedIn Lead Sync</title>
-    <link rel="stylesheet" href="popup.css" />
+    <meta charset="utf-8" />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      /* Light mode (default) */
+      :root {
+        --bg: #ffffff;
+        --surface: #f8fafc;
+        --text: #0f172a;
+        --text-secondary: #475569;
+        --border: #e2e8f0;
+        --primary: #0a66c2;
+        --primary-hover: #004182;
+        --success-bg: #dcfce7;
+        --success-text: #14532d;
+        --error-bg: #fee2e2;
+        --error-text: #7f1d1d;
+        --info-bg: #e0f2fe;
+        --info-text: #0284c7;
+      }
+      /* Dark mode */
+      body.dark {
+        --bg: #0f172a;
+        --surface: #1e293b;
+        --text: #f1f5f9;
+        --text-secondary: #94a3b8;
+        --border: #334155;
+        --primary: #3b82f6;
+        --primary-hover: #60a5fa;
+        --success-bg: #14532d;
+        --success-text: #dcfce7;
+        --error-bg: #7f1d1d;
+        --error-text: #fee2e2;
+        --info-bg: #0284c7;
+        --info-text: #e0f2fe;
+      }
+      body {
+        width: 400px;
+        padding: 20px;
+        font-family:
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          Roboto,
+          sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        transition:
+          background 0.2s,
+          color 0.2s;
+      }
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+      }
+      h3 {
+        font-size: 18px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .badge {
+        background: var(--surface);
+        padding: 2px 8px;
+        border-radius: 20px;
+        font-size: 10px;
+        border: 1px solid var(--border);
+      }
+      .theme-icon {
+        cursor: pointer;
+        font-size: 18px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 30px;
+        padding: 5px 10px;
+        transition: 0.2s;
+      }
+      .theme-icon:hover {
+        background: var(--primary);
+        color: white;
+      }
+      button {
+        width: 100%;
+        padding: 12px;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 30px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        margin-bottom: 16px;
+        transition: 0.2s;
+      }
+      button:hover {
+        background: var(--primary-hover);
+      }
+      button:disabled {
+        background: var(--text-secondary);
+        cursor: not-allowed;
+      }
+      #status {
+        background: var(--surface);
+        padding: 12px;
+        border-radius: 16px;
+        font-size: 13px;
+        white-space: pre-wrap;
+        word-break: break-word;
+        max-height: 280px;
+        overflow-y: auto;
+        border-left: 3px solid var(--primary);
+      }
+      .success {
+        background: var(--success-bg);
+        color: var(--success-text);
+        border-left-color: #16a34a;
+      }
+      .error {
+        background: var(--error-bg);
+        color: var(--error-text);
+        border-left-color: #dc2626;
+      }
+      .info {
+        background: var(--info-bg);
+        color: var(--info-text);
+        border-left-color: #0284c7;
+      }
+      hr {
+        margin: 16px 0;
+        border-color: var(--border);
+      }
+      .footer {
+        font-size: 11px;
+        color: var(--text-secondary);
+        text-align: center;
+      }
+    </style>
   </head>
   <body>
-    <div class="container">
-      <!-- Header -->
-      <header class="header">
-        <div class="header-content">
-          <h1 class="title">Bitzsol CRM</h1>
-          <p class="subtitle">LinkedIn Lead Sync</p>
-        </div>
-        <a
-          href="options.html"
-          target="_blank"
-          class="settings-link"
-          title="Settings"
-          >⚙️</a
-        >
-      </header>
-
-      <!-- Quick Start -->
-      <section class="card card-info">
-        <h3 class="section-title">Quick Start</h3>
-        <ol class="instructions">
-          <li>Open a LinkedIn profile page</li>
-          <li>Click "Extract Profile Data" below</li>
-          <li>Optionally enrich with Apify, Apollo, or LeadMagic</li>
-          <li>Review and click "Sync to CRM"</li>
-        </ol>
-      </section>
-
-      <!-- LinkedIn Profile -->
-      <section class="card">
-        <h3 class="section-title">LinkedIn Profile</h3>
-        <div class="button-group">
-          <button id="extractBtn" class="btn btn-primary">
-            📋 Extract Profile Data
-          </button>
-          <button id="copyLinkBtn" class="btn btn-secondary">
-            🔗 Copy Profile URL
-          </button>
-        </div>
-        <div id="profileSummary" class="profile-summary hidden">
-          <div class="summary-row">
-            <span class="label">Name:</span
-            ><span id="summaryName" class="value">—</span>
-          </div>
-          <div class="summary-row">
-            <span class="label">Headline:</span
-            ><span id="summaryHeadline" class="value">—</span>
-          </div>
-          <div class="summary-row">
-            <span class="label">Company:</span
-            ><span id="summaryCompany" class="value">—</span>
-          </div>
-          <div class="summary-row">
-            <span class="label">Location:</span
-            ><span id="summaryLocation" class="value">—</span>
-          </div>
-          <div class="summary-row">
-            <span class="label">Emails:</span
-            ><span id="summaryEmails" class="value">—</span>
-          </div>
-          <div class="summary-row">
-            <span class="label">Phones:</span
-            ><span id="summaryPhones" class="value">—</span>
-          </div>
-        </div>
-      </section>
-
-      <!-- Enrichment -->
-      <section class="card">
-        <h3 class="section-title">Enrich Lead (Optional)</h3>
-        <p class="section-help">
-          Use external services to find additional contact info
-        </p>
-        <div class="enrichment-buttons">
-          <button id="enrichApifyBtn" class="btn btn-secondary btn-small">
-            Apify
-          </button>
-          <button id="enrichApolloBtn" class="btn btn-secondary btn-small">
-            Apollo
-          </button>
-          <button id="enrichLeadmagicBtn" class="btn btn-secondary btn-small">
-            LeadMagic
-          </button>
-        </div>
-        <div id="enrichmentStatus" class="status-box hidden"></div>
-      </section>
-
-      <!-- Lead Details Form -->
-      <section class="card">
-        <h3 class="section-title">Lead Details</h3>
-        <form id="leadForm" class="form">
-          <div class="form-row">
-            <div class="form-group">
-              <label for="firstName">First Name *</label
-              ><input type="text" id="firstName" class="input" required />
-            </div>
-            <div class="form-group">
-              <label for="lastName">Last Name *</label
-              ><input type="text" id="lastName" class="input" required />
-            </div>
-          </div>
-          <div class="form-group">
-            <label for="headline">Headline</label
-            ><input
-              type="text"
-              id="headline"
-              class="input"
-              placeholder="Job title"
-            />
-          </div>
-          <div class="form-group">
-            <label for="company">Company</label
-            ><input type="text" id="company" class="input" />
-          </div>
-          <div class="form-group">
-            <label for="location">Location</label
-            ><input type="text" id="location" class="input" />
-          </div>
-          <div class="form-group">
-            <label for="emails">Email(s)</label
-            ><textarea
-              id="emails"
-              class="textarea"
-              rows="2"
-              placeholder="Comma or newline separated"
-            ></textarea>
-          </div>
-          <div class="form-group">
-            <label for="phones">Phone(s)</label
-            ><textarea
-              id="phones"
-              class="textarea"
-              rows="2"
-              placeholder="Comma or newline separated"
-            ></textarea>
-          </div>
-          <div class="form-group">
-            <label for="profileUrl">LinkedIn URL</label
-            ><input type="url" id="profileUrl" class="input" />
-          </div>
-          <div class="form-group">
-            <label for="about">About</label
-            ><textarea
-              id="about"
-              class="textarea"
-              rows="2"
-              placeholder="Profile summary"
-            ></textarea>
-          </div>
-          <div class="form-group">
-            <label for="pipelineId">Pipeline *</label
-            ><select id="pipelineId" class="input" required>
-              <option value="">Loading pipelines...</option>
-            </select>
-          </div>
-          <div class="button-group">
-            <button type="submit" class="btn btn-primary btn-full">
-              ✓ Sync to CRM
-            </button>
-          </div>
-        </form>
-      </section>
-
-      <!-- Status -->
-      <section class="card card-status">
-        <div id="statusMessage" class="status-message"></div>
-      </section>
+    <div class="header">
+      <h3>
+        🔍 LinkedIn Lead Extractor
+        <span class="badge">v1.0</span>
+      </h3>
+      <div class="theme-icon" id="themeToggle" title="Toggle dark mode">🌓</div>
     </div>
-    <script src="popup.js"></script>
+    <button id="extractBtn">🚀 Extract & Sync to Bitzsol</button>
+    <div id="status">
+      💡 Ready.<br />Open any LinkedIn profile, then click the button.
+    </div>
+    <hr />
+    <div class="footer">Apify → Apollo → Bitzsol CRM</div>
+
+    <script>
+      // DOM elements
+      const extractBtn = document.getElementById("extractBtn");
+      const statusDiv = document.getElementById("status");
+      const themeToggle = document.getElementById("themeToggle");
+
+      // Load dark mode preference from storage
+      async function loadDarkMode() {
+        const result = await chrome.storage.sync.get(["darkMode"]);
+        if (result.darkMode === "dark") {
+          document.body.classList.add("dark");
+        } else {
+          document.body.classList.remove("dark");
+        }
+      }
+
+      // Save dark mode preference
+      async function saveDarkMode(isDark) {
+        await chrome.storage.sync.set({ darkMode: isDark ? "dark" : "light" });
+        // Notify options page if open (optional)
+        chrome.runtime
+          .sendMessage({ action: "settingsUpdated" })
+          .catch(() => {});
+      }
+
+      // Toggle dark mode
+      function toggleDarkMode() {
+        const isDark = document.body.classList.toggle("dark");
+        saveDarkMode(isDark);
+      }
+
+      themeToggle.addEventListener("click", toggleDarkMode);
+      loadDarkMode();
+
+      // Extract & Sync logic
+      extractBtn.addEventListener("click", async () => {
+        extractBtn.disabled = true;
+        extractBtn.textContent = "⏳ Extracting...";
+        statusDiv.textContent = "⏳ Checking current tab...";
+        statusDiv.className = "info";
+
+        try {
+          const [tab] = await chrome.tabs.query({
+            active: true,
+            currentWindow: true,
+          });
+          const url = tab.url;
+
+          if (!url || !url.includes("linkedin.com/in/")) {
+            throw new Error(
+              "Please open a LinkedIn profile page (URL should contain linkedin.com/in/).",
+            );
+          }
+
+          statusDiv.textContent =
+            "📡 Sending request to background service...\n⏳ This may take 10-20 seconds.";
+
+          const response = await new Promise((resolve, reject) => {
+            chrome.runtime.sendMessage(
+              { action: "extractLinkedinLead", url: url },
+              (response) => {
+                if (chrome.runtime.lastError) {
+                  reject(new Error(chrome.runtime.lastError.message));
+                } else {
+                  resolve(response);
+                }
+              },
+            );
+          });
+
+          if (response && response.success) {
+            const lead = response.data;
+            const scraped = lead.scraped || {};
+            const enriched = lead.enriched || {};
+            const crm = lead.crm || {};
+
+            let resultHtml = `✅ <strong>Lead Synced Successfully!</strong><br><br>`;
+            resultHtml += `<strong>Name:</strong> ${scraped.fullName || "N/A"}<br>`;
+            resultHtml += `<strong>Email:</strong> ${enriched.email || scraped.email || "N/A"}<br>`;
+            resultHtml += `<strong>Phone:</strong> ${enriched.phone || scraped.phone || "N/A"}<br>`;
+            resultHtml += `<strong>Company:</strong> ${scraped.currentCompany || "N/A"}<br>`;
+            resultHtml += `<strong>Title:</strong> ${scraped.jobTitle || "N/A"}<br>`;
+            if (enriched.enriched) {
+              resultHtml += `<span style="color:#16a34a;">✨ Enriched via Apollo</span><br>`;
+            } else if (enriched.reason) {
+              resultHtml += `<span style="color:var(--text-secondary);">⚠️ No enrichment: ${enriched.reason}</span><br>`;
+            }
+            resultHtml += `<br><span style="font-size:11px;">CRM: ${JSON.stringify(crm).slice(0, 80)}</span>`;
+            statusDiv.innerHTML = resultHtml;
+            statusDiv.className = "success";
+          } else {
+            throw new Error(
+              response?.error || "Unknown error from background script.",
+            );
+          }
+        } catch (err) {
+          statusDiv.innerHTML = `❌ <strong>Extraction failed</strong><br>${err.message}`;
+          statusDiv.className = "error";
+        } finally {
+          extractBtn.disabled = false;
+          extractBtn.textContent = "🚀 Extract & Sync to Bitzsol";
+        }
+      });
+    </script>
   </body>
 </html>
