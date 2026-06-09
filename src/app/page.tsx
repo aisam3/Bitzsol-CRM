@@ -73,13 +73,13 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-crm-bg text-crm-text-main font-sans relative">
+    <div className="min-h-screen bg-crm-bg text-crm-text-main font-sans relative overflow-x-hidden">
       {/* Auth gate overlays the blurred dashboard when not logged in */}
       {!user && (
         <AuthGate onAuth={(u) => { setUser(u); fetchAll(); }} />
       )}
 
-      <div className={`flex min-h-screen transition-all duration-500 ${!user ? "filter blur-[6px] pointer-events-none select-none opacity-40" : ""}`}>
+      <div className={`flex min-h-screen transition-all duration-500 overflow-x-hidden ${!user ? "filter blur-[6px] pointer-events-none select-none opacity-40" : ""}`}>
         <Sidebar
           user={user}
           activeTab={activeTab}
@@ -89,7 +89,7 @@ export default function App() {
           onClose={() => setSidebarOpen(false)}
         />
 
-        <div className="flex-1 md:pl-64 flex flex-col min-h-screen">
+        <div className="flex-1 md:pl-64 flex flex-col min-h-screen min-w-0 overflow-x-hidden">
           <DashboardHeader
             user={user}
             onMenuOpen={() => setSidebarOpen(true)}

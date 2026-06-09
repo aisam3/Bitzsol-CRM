@@ -370,21 +370,21 @@ export function LeadsView({ user, leads: initialLeads, pipelines, onRefresh }: P
             <p className="text-xs text-crm-text-sub">Try adjusting your filters or create a new lead.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
+          <div className="overflow-hidden w-full">
+            <table className="w-full table-fixed">
               <thead className="border-b border-crm-border">
                 <tr className="text-xs font-bold text-crm-text-sub uppercase tracking-widest">
-                  <th className="px-5 py-4 text-left cursor-pointer hover:text-crm-text-main select-none transition-colors" onClick={() => handleSort("name")}>
+                  <th className="px-5 py-4 text-left w-[26%] cursor-pointer hover:text-crm-text-main select-none transition-colors whitespace-nowrap" onClick={() => handleSort("name")}>
                     <div className="flex items-center gap-1">
                       Name
                       {sortField === "name" && (sortOrder === "asc" ? <ChevronUp className="w-3.5 h-3.5 text-[#0164DA]" /> : <ChevronDown className="w-3.5 h-3.5 text-[#0164DA]" />)}
                     </div>
                   </th>
                   {visibleCols.pipeline && (
-                    <th className="px-5 py-4 text-left hidden sm:table-cell">Pipeline</th>
+                    <th className="px-4 py-4 text-left hidden sm:table-cell w-[12%] whitespace-nowrap">Pipeline</th>
                   )}
                   {visibleCols.source && (
-                    <th className="px-5 py-4 text-left hidden md:table-cell cursor-pointer hover:text-crm-text-main select-none transition-colors" onClick={() => handleSort("source")}>
+                    <th className="px-4 py-4 text-left hidden md:table-cell w-[9%] cursor-pointer hover:text-crm-text-main select-none transition-colors whitespace-nowrap" onClick={() => handleSort("source")}>
                       <div className="flex items-center gap-1">
                         Source
                         {sortField === "source" && (sortOrder === "asc" ? <ChevronUp className="w-3.5 h-3.5 text-[#0164DA]" /> : <ChevronDown className="w-3.5 h-3.5 text-[#0164DA]" />)}
@@ -392,7 +392,7 @@ export function LeadsView({ user, leads: initialLeads, pipelines, onRefresh }: P
                     </th>
                   )}
                   {visibleCols.status && (
-                    <th className="px-5 py-4 text-left cursor-pointer hover:text-crm-text-main select-none transition-colors" onClick={() => handleSort("status")}>
+                    <th className="px-4 py-4 text-left w-[14%] cursor-pointer hover:text-crm-text-main select-none transition-colors whitespace-nowrap" onClick={() => handleSort("status")}>
                       <div className="flex items-center gap-1">
                         Status
                         {sortField === "status" && (sortOrder === "asc" ? <ChevronUp className="w-3.5 h-3.5 text-[#0164DA]" /> : <ChevronDown className="w-3.5 h-3.5 text-[#0164DA]" />)}
@@ -400,66 +400,87 @@ export function LeadsView({ user, leads: initialLeads, pipelines, onRefresh }: P
                     </th>
                   )}
                   {visibleCols.emails && (
-                    <th className="px-5 py-4 text-left hidden lg:table-cell">Emails</th>
+                    <th className="px-4 py-4 text-left hidden lg:table-cell w-[21%] whitespace-nowrap">Emails</th>
                   )}
                   {visibleCols.createdBy && (
-                    <th className="px-5 py-4 text-left hidden xl:table-cell">Created By</th>
+                    <th className="px-4 py-4 text-left hidden xl:table-cell w-[10%] whitespace-nowrap">Created By</th>
                   )}
-                  <th className="px-5 py-4 text-right">Actions</th>
+                  <th className="px-4 py-4 text-right w-[8%] whitespace-nowrap">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-crm-border/40">
                 {leads.map((lead) => (
                   <tr key={lead.id} className="group hover:bg-crm-panel-hover/30 transition-colors">
-                    <td className="px-5 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-crm-panel-hover border border-crm-border flex items-center justify-center text-[#0164DA] font-bold text-xs">
+                    {/* Name cell */}
+                    <td className="px-5 py-3.5 max-w-0">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-8 h-8 rounded-lg bg-crm-panel-hover border border-crm-border flex items-center justify-center text-[#0164DA] font-bold text-xs shrink-0">
                           {lead.firstName.substring(0, 2).toUpperCase()}
                         </div>
-                        <div>
-                          <p className="text-sm font-bold text-crm-text-main">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-bold text-crm-text-main truncate leading-snug">
                             {[lead.firstName, lead.middleName, lead.lastName].filter(Boolean).join(" ")}
                           </p>
-                          {(lead.designation || (lead.tags && lead.tags.length > 0)) && (
-                            <div className="flex flex-wrap items-center gap-1.5 mt-1">
-                              {lead.designation && <span className="text-xs text-crm-text-sub">{lead.designation}</span>}
-                              {lead.designation && lead.tags && lead.tags.length > 0 && <span className="text-xs text-crm-text-sub/40">•</span>}
-                              {lead.tags && lead.tags.map((tag) => (
-                                <span key={tag} className="text-[0.72rem] font-extrabold px-1.5 py-0.5 rounded bg-[#0164DA]/10 border border-[#0164DA]/20 text-[#0164DA] uppercase tracking-wider">
+                          {lead.designation && (
+                            <p
+                              className="text-xs text-crm-text-sub mt-0.5 leading-snug"
+                              style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}
+                            >
+                              {lead.designation}
+                            </p>
+                          )}
+                          {lead.tags && lead.tags.length > 0 && (
+                            <div className="flex items-center gap-1 mt-1 overflow-hidden">
+                              {lead.tags.slice(0, 2).map((tag) => (
+                                <span key={tag} className="text-[0.65rem] font-extrabold px-1.5 py-0.5 rounded bg-[#0164DA]/10 border border-[#0164DA]/20 text-[#0164DA] uppercase tracking-wider shrink-0">
                                   {tag}
                                 </span>
                               ))}
+                              {lead.tags.length > 2 && (
+                                <span className="text-[0.65rem] text-crm-text-sub">+{lead.tags.length - 2}</span>
+                              )}
                             </div>
                           )}
                         </div>
                       </div>
                     </td>
+
+                    {/* Pipeline */}
                     {visibleCols.pipeline && (
-                      <td className="px-5 py-4 text-xs text-crm-text-sub hidden sm:table-cell">{lead.pipeline?.name ?? "—"}</td>
+                      <td className="px-4 py-3.5 text-xs text-crm-text-sub hidden sm:table-cell max-w-0">
+                        <span className="truncate block">{lead.pipeline?.name ?? "—"}</span>
+                      </td>
                     )}
+
+                    {/* Source */}
                     {visibleCols.source && (
-                      <td className="px-5 py-4 text-xs text-crm-text-sub hidden md:table-cell">{lead.leadSource}</td>
+                      <td className="px-4 py-3.5 text-xs text-crm-text-sub hidden md:table-cell max-w-0">
+                        <span className="truncate block">{lead.leadSource}</span>
+                      </td>
                     )}
+
+                    {/* Status */}
                     {visibleCols.status && (
-                      <td className="px-5 py-4">
-                        {/* Inline status change */}
+                      <td className="px-4 py-3.5 max-w-0">
                         <select
                           value={lead.status}
                           onChange={(e) => handleStatusChange(lead, e.target.value)}
-                          className="text-xs font-bold px-2 py-1 rounded-lg bg-crm-panel-hover border border-crm-border text-crm-text-main focus:outline-none focus:border-[#0164DA] cursor-pointer animate-in fade-in duration-200"
+                          className="text-xs font-bold px-2 py-1.5 rounded-lg bg-crm-panel-hover border border-crm-border text-crm-text-main focus:outline-none focus:border-[#0164DA] cursor-pointer w-full max-w-[140px]"
                         >
                           {statuses2.map((s) => <option key={s}>{s}</option>)}
                         </select>
                       </td>
                     )}
+
+                    {/* Emails */}
                     {visibleCols.emails && (
-                      <td className="px-5 py-4 hidden lg:table-cell">
+                      <td className="px-4 py-3.5 hidden lg:table-cell max-w-0">
                         {lead.emails.length > 0 ? (
-                          <div className="space-y-0.5">
+                          <div className="min-w-0">
                             {lead.emails.slice(0, 1).map((e) => (
-                              <div key={e.id} className="flex items-center gap-1.5">
-                                <span className="text-xs text-crm-text-sub">{e.email}</span>
-                                <span className={`text-[0.72rem] font-bold px-1 py-0.5 rounded ${e.status === "Verified" ? "text-[#03D9AF] bg-[#03D9AF]/10" : "text-[#F59E0B] bg-[#F59E0B]/10"}`}>
+                              <div key={e.id} className="flex items-center gap-1.5 min-w-0">
+                                <span className="text-xs text-crm-text-sub truncate">{e.email}</span>
+                                <span className={`text-[0.72rem] font-bold px-1 py-0.5 rounded shrink-0 ${e.status === "Verified" ? "text-[#03D9AF] bg-[#03D9AF]/10" : "text-[#F59E0B] bg-[#F59E0B]/10"}`}>
                                   {e.status === "Verified" ? "✓" : "?"}
                                 </span>
                               </div>
@@ -469,18 +490,24 @@ export function LeadsView({ user, leads: initialLeads, pipelines, onRefresh }: P
                         ) : <span className="text-xs text-crm-text-sub">—</span>}
                       </td>
                     )}
+
+                    {/* Created By */}
                     {visibleCols.createdBy && (
-                      <td className="px-5 py-4 text-xs text-crm-text-sub hidden xl:table-cell">{lead.createdBy?.name ?? "—"}</td>
+                      <td className="px-4 py-3.5 text-xs text-crm-text-sub hidden xl:table-cell max-w-0">
+                        <span className="truncate block">{lead.createdBy?.name ?? "—"}</span>
+                      </td>
                     )}
-                    <td className="px-5 py-4 text-right">
-                      <div className="flex items-center gap-2 justify-end">
+
+                    {/* Actions */}
+                    <td className="px-4 py-3.5">
+                      <div className="flex items-center gap-1.5 justify-end">
                         <button onClick={() => setEditLead(lead)}
-                          className="w-7 h-7 rounded-lg bg-[#0164DA]/10 text-[#0164DA] flex items-center justify-center hover:bg-[#0164DA]/20 transition-colors cursor-pointer">
+                          className="w-7 h-7 rounded-lg bg-[#0164DA]/10 text-[#0164DA] flex items-center justify-center hover:bg-[#0164DA]/20 transition-colors cursor-pointer shrink-0">
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
                         {user?.role === "admin" && (
                           <button onClick={() => setDeleteId(lead.id)}
-                            className="w-7 h-7 rounded-lg bg-red-500/10 text-red-400 flex items-center justify-center hover:bg-red-500/20 transition-colors cursor-pointer">
+                            className="w-7 h-7 rounded-lg bg-red-500/10 text-red-400 flex items-center justify-center hover:bg-red-500/20 transition-colors cursor-pointer shrink-0">
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         )}

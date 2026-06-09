@@ -110,10 +110,12 @@
 
 @layer base {
   html {
-    font-size: 116%;
+    font-size: 100%;
+    overflow-x: hidden;
   }
   * {
     border-color: var(--color-border);
+    box-sizing: border-box;
   }
   body {
     background-color: var(--color-background);
@@ -121,6 +123,8 @@
     font-feature-settings: "rlig" 1, "calt" 1;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+    max-width: 100vw;
   }
 }
 

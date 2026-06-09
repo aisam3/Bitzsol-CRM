@@ -74,7 +74,7 @@ export function DashboardView({ user, stats, leads, pipelines, onLeadCreated }: 
       </div>
 
       {/* ─── Stat Cards ─── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
         <StatCard
           label="Total Leads"
           value={stats?.totalLeads ?? 0}
@@ -145,26 +145,26 @@ export function DashboardView({ user, stats, leads, pipelines, onLeadCreated }: 
         ) : (
           <>
             {/* Desktop Table — hidden on mobile */}
-            <div className="hidden sm:block overflow-x-auto">
-              <table className="w-full">
+            <div className="hidden sm:block w-full overflow-hidden">
+              <table className="w-full table-fixed">
                 <thead>
                   <tr className="border-b border-crm-border text-xs font-bold text-crm-text-sub uppercase tracking-widest">
-                    <th className="pb-3 text-left">Name</th>
-                    <th className="pb-3 text-left hidden md:table-cell">Pipeline</th>
-                    <th className="pb-3 text-left hidden lg:table-cell">Source</th>
-                    <th className="pb-3 text-left">Status</th>
-                    <th className="pb-3 text-left hidden xl:table-cell">Created By</th>
+                    <th className="pb-3 text-left w-[40%]">Name</th>
+                    <th className="pb-3 text-left hidden md:table-cell w-[20%]">Pipeline</th>
+                    <th className="pb-3 text-left hidden lg:table-cell w-[15%]">Source</th>
+                    <th className="pb-3 text-left w-[15%]">Status</th>
+                    <th className="pb-3 text-left hidden xl:table-cell w-[10%]">Created By</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-crm-border/40">
                   {recentLeads.map((lead) => (
                     <tr key={lead.id} className="hover:bg-crm-panel-hover/30 transition-colors">
-                      <td className="py-3 pr-4">
+                      <td className="py-3 pr-4 max-w-0">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-lg bg-crm-panel-hover border border-crm-border flex items-center justify-center text-[#0164DA] font-bold text-xs shrink-0">
                             {lead.firstName.substring(0, 2).toUpperCase()}
                           </div>
-                          <div className="min-w-0">
+                          <div className="min-w-0 flex-1">
                             <p className="text-sm font-bold text-crm-text-main truncate">
                               {[lead.firstName, lead.middleName, lead.lastName]
                                 .filter(Boolean)
@@ -178,17 +178,17 @@ export function DashboardView({ user, stats, leads, pipelines, onLeadCreated }: 
                           </div>
                         </div>
                       </td>
-                      <td className="py-3 pr-4 text-xs text-crm-text-sub hidden md:table-cell">
-                        {lead.pipeline?.name ?? "—"}
+                      <td className="py-3 pr-4 text-xs text-crm-text-sub hidden md:table-cell max-w-0">
+                        <span className="truncate block">{lead.pipeline?.name ?? "—"}</span>
                       </td>
-                      <td className="py-3 pr-4 text-xs text-crm-text-sub hidden lg:table-cell">
-                        {lead.leadSource}
+                      <td className="py-3 pr-4 text-xs text-crm-text-sub hidden lg:table-cell max-w-0">
+                        <span className="truncate block">{lead.leadSource}</span>
                       </td>
-                      <td className="py-3 pr-4">
+                      <td className="py-3 pr-4 max-w-0">
                         <StatusBadge status={lead.status} />
                       </td>
-                      <td className="py-3 text-xs text-crm-text-sub hidden xl:table-cell">
-                        {lead.createdBy?.name ?? "—"}
+                      <td className="py-3 text-xs text-crm-text-sub hidden xl:table-cell max-w-0">
+                        <span className="truncate block">{lead.createdBy?.name ?? "—"}</span>
                       </td>
                     </tr>
                   ))}
