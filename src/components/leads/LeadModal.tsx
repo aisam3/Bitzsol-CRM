@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { X, Plus, Trash2, Mail, Phone, AlertCircle, Link } from "lucide-react";
+import { X, Plus, Trash2, Mail, Phone, AlertCircle, Link, Hash } from "lucide-react";
 import type { Pipeline, Lead } from "@/types";
 
 interface Props {
@@ -33,6 +33,30 @@ export function LeadModal({ pipelines, lead, onClose, onSaved }: Props) {
   const [customFields, setCustomFields] = useState<{ key: string; value: string }[]>(
     lead?.customFields ?? []
   );
+
+  const [tags, setTags] = useState<string[]>(lead?.tags ?? []);
+  const [tagInput, setTagInput] = useState("");
+
+  function handleAddTag(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      let val = tagInput.trim();
+      if (!val) return;
+
+      if (!val.startsWith("#")) {
+        val = `#${val}`;
+      }
+
+      if (!tags.includes(val)) {
+        setTags([...tags, val]);
+      }
+      setTagInput("");
+    }
+  }
+
+  function handleRemoveTag(tagToRemove: string) {
+    setTags(tags.filter((t) => t !== tagToRemove));
+  }
 
   const [customStatuses, setCustomStatuses] = useState<string[]>(() => {
     const defaults = ["New", "Contacted", "Qualified", "Proposal Sent", "Negotiation", "Closed", "Lost"];
@@ -117,6 +141,7 @@ export function LeadModal({ pipelines, lead, onClose, onSaved }: Props) {
           emails: emails.filter((e) => e.email.trim()),
           phones: phones.filter((p) => p.phone.trim()),
           customFields: customFields.filter((f) => f.key.trim()),
+          tags,
         }),
       });
       const data = await res.json();
@@ -145,7 +170,7 @@ export function LeadModal({ pipelines, lead, onClose, onSaved }: Props) {
               <h3 className="text-sm sm:text-base font-bold uppercase tracking-wider text-crm-text-main">
                 {isEdit ? "Modify Lead Details" : "Create New Lead"}
               </h3>
-              <p className="text-[10px] text-crm-text-sub uppercase tracking-widest mt-0.5">
+              <p className="text-[0.72rem] text-crm-text-sub uppercase tracking-widest mt-0.5">
                 {isEdit ? `Editing Lead Profile: ${firstName} ${lastName}` : "Add a new lead to your business development pipeline"}
               </p>
             </div>
@@ -206,7 +231,7 @@ export function LeadModal({ pipelines, lead, onClose, onSaved }: Props) {
                       <button
                         type="button"
                         onClick={() => setShowNewStatusInput(true)}
-                        className="text-[10px] text-[#03D9AF] hover:underline cursor-pointer font-bold uppercase tracking-wider"
+                        className="text-[0.72rem] text-[#03D9AF] hover:underline cursor-pointer font-bold uppercase tracking-wider"
                       >
                         + Add Custom
                       </button>
@@ -250,7 +275,7 @@ export function LeadModal({ pipelines, lead, onClose, onSaved }: Props) {
                       <button
                         type="button"
                         onClick={() => setShowNewSourceInput(true)}
-                        className="text-[10px] text-[#03D9AF] hover:underline cursor-pointer font-bold uppercase tracking-wider"
+                        className="text-[0.72rem] text-[#03D9AF] hover:underline cursor-pointer font-bold uppercase tracking-wider"
                       >
                         + Add Custom
                       </button>
@@ -441,6 +466,43 @@ export function LeadModal({ pipelines, lead, onClose, onSaved }: Props) {
                       )}
                     </div>
                   ))}
+                </div>
+              </div>
+
+              {/* Tags Section */}
+              <div className="space-y-1">
+                <span className="text-xs font-bold text-[#0164DA] uppercase tracking-wider">Tags</span>
+                <div className="space-y-2">
+                  <div className="relative">
+                    <Hash className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-crm-text-sub" />
+                    <input
+                      type="text"
+                      value={tagInput}
+                      onChange={(e) => setTagInput(e.target.value)}
+                      onKeyDown={handleAddTag}
+                      className={`${inputCls} pl-10`}
+                      placeholder="Type tag (e.g. fiverr) and hit Enter"
+                    />
+                  </div>
+                  {tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 max-h-16 overflow-y-auto pr-1 py-0.5">
+                      {tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-[#0164DA]/10 border border-[#0164DA]/20 text-[#0164DA] text-xs font-bold uppercase tracking-wider transition-all duration-200 hover:bg-[#0164DA]/15"
+                        >
+                          {tag}
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveTag(tag)}
+                            className="hover:text-red-400 cursor-pointer transition-colors"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 

@@ -2,33 +2,33 @@
 
 :root {
   /* Core Theme (Auto-discovered by Tailwind v4) */
-  --color-background: #fafafa;
-  --color-foreground: #09090b;
+  --color-background: #ffffff;
+  --color-foreground: #000000;
   
   --color-card: #ffffff;
-  --color-card-foreground: #09090b;
+  --color-card-foreground: #000000;
   
   --color-popover: #ffffff;
-  --color-popover-foreground: #09090b;
+  --color-popover-foreground: #000000;
   
-  --color-primary: #18181b;
-  --color-primary-foreground: #fafafa;
+  --color-primary: #0164DA; /* Brand Primary Blue */
+  --color-primary-foreground: #ffffff;
   
   --color-secondary: #f4f4f5;
-  --color-secondary-foreground: #18181b;
+  --color-secondary-foreground: #0164DA;
   
   --color-muted: #f4f4f5;
-  --color-muted-foreground: #71717a;
+  --color-muted-foreground: #52525b;
   
   --color-accent: #f4f4f5;
-  --color-accent-foreground: #18181b;
+  --color-accent-foreground: #0164DA;
   
   --color-destructive: #ef4444;
-  --color-destructive-foreground: #fafafa;
+  --color-destructive-foreground: #ffffff;
   
   --color-border: #e4e4e7;
   --color-input: #e4e4e7;
-  --color-ring: #18181b;
+  --color-ring: #0164DA;
   
   --radius: 0.75rem;
 
@@ -36,66 +36,66 @@
   --font-sans: var(--font-outfit), var(--font-geist-sans), ui-sans-serif, system-ui;
   --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 
-  /* Custom Utilities */
-  --background-image-premium-gradient: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #d946ef 100%);
+  /* Custom Utilities (No Gradient as requested) */
+  --background-image-premium-gradient: #0164DA;
 
   /* Glassmorphism */
   --glass-bg: rgba(255, 255, 255, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.3);
+  --glass-border: rgba(0, 0, 0, 0.08);
   --glass-blur: 12px;
 
   /* CRM Specific Adaptable Theme Colors */
   --crm-bg: #f8fafc;
   --crm-panel: #ffffff;
   --crm-border: #e2e8f0;
-  --crm-text-main: #0f172a;
-  --crm-text-sub: #64748b;
+  --crm-text-main: #000000;
+  --crm-text-sub: #475569;
   --crm-panel-hover: #f1f5f9;
   --crm-input-bg: #f1f5f9;
 }
 
 .dark {
-  --color-background: #020617;
-  --color-foreground: #f8fafc;
+  --color-background: #313338; /* Discord Main Chat Area BG */
+  --color-foreground: #ffffff; /* Absolute Neutral White */
   
-  --color-card: #0f172a;
-  --color-card-foreground: #f8fafc;
+  --color-card: #2b2d31; /* Discord Sidebar / Panel BG */
+  --color-card-foreground: #ffffff;
   
-  --color-popover: #020617;
-  --color-popover-foreground: #f8fafc;
+  --color-popover: #2b2d31;
+  --color-popover-foreground: #ffffff;
   
-  --color-primary: #3b82f6;
+  --color-primary: #0164DA; /* Brand Primary Blue */
   --color-primary-foreground: #ffffff;
   
-  --color-secondary: #1e293b;
-  --color-secondary-foreground: #f8fafc;
+  --color-secondary: #1e1f22; /* Discord Server List BG */
+  --color-secondary-foreground: #ffffff;
   
-  --color-muted: #1e293b;
-  --color-muted-foreground: #94a3b8;
+  --color-muted: #1e1f22;
+  --color-muted-foreground: #ffffff; /* Readable White instead of Grey */
   
-  --color-accent: #1e293b;
-  --color-accent-foreground: #f8fafc;
+  --color-accent: #1e1f22;
+  --color-accent-foreground: #ffffff;
   
-  --color-destructive: #7f1d1d;
-  --color-destructive-foreground: #f8fafc;
+  --color-destructive: #ef4444;
+  --color-destructive-foreground: #ffffff;
   
-  --color-border: #1e293b;
-  --color-input: #1e293b;
-  --color-ring: #3b82f6;
+  --color-border: #1e1f22;
+  --color-input: #1e1f22;
+  --color-ring: #0164DA;
 
   /* Glassmorphism Dark */
-  --glass-bg: rgba(15, 23, 42, 0.7);
+  --glass-bg: rgba(43, 45, 49, 0.7);
   --glass-border: rgba(255, 255, 255, 0.05);
   --glass-blur: 16px;
 
   /* CRM Specific Adaptable Theme Colors Dark */
-  --crm-bg: #0c0f1d;
-  --crm-panel: #131627;
-  --crm-border: #1f233d;
-  --crm-text-main: #ffffff;
-  --crm-text-sub: #888d9f;
-  --crm-panel-hover: #1c1f36;
-  --crm-input-bg: #131627;
+  --crm-bg: #313338; /* Discord Main Chat Area BG */
+  --crm-panel: #2b2d31; /* Discord Sidebar BG */
+  --crm-border: #1e1f22;
+  --crm-text-main: #ffffff; /* Pure White text */
+  --crm-text-sub: #ffffff; /* Pure White text instead of Grey */
+  --crm-panel-hover: #35373c; /* Discord Item Hover BG */
+  --crm-input-bg: #1e1f22;
 }
 
 @theme {
@@ -110,7 +110,7 @@
 
 @layer base {
   html {
-    font-size: 108%;
+    font-size: 116%;
   }
   * {
     border-color: var(--color-border);
@@ -136,11 +136,7 @@
   }
 
   .text-gradient {
-    background: var(--background-image-premium-gradient);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    -webkit-text-fill-color: transparent;
+    color: var(--background-image-premium-gradient);
   }
 }
 

@@ -90,7 +90,7 @@ export function PipelinesView({ user, pipelines, onRefresh }: Props) {
               </div>
               <h4 className="font-bold text-crm-text-main text-sm mb-1">{p.name}</h4>
               {p.description && <p className="text-xs text-crm-text-sub mb-3 line-clamp-2">{p.description}</p>}
-              <div className="flex items-center justify-between text-[10px] text-crm-text-sub border-t border-crm-border pt-3 mt-3">
+              <div className="flex items-center justify-between text-xs text-crm-text-sub border-t border-crm-border pt-3 mt-3">
                 <span>{p._count?.leads ?? 0} leads</span>
                 <span>by {p.createdBy?.name ?? "—"}</span>
               </div>
@@ -107,13 +107,13 @@ export function PipelinesView({ user, pipelines, onRefresh }: Props) {
             {error && <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-3 rounded-xl text-xs mb-4">{error}</div>}
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-[10px] font-bold text-[#0164DA] uppercase tracking-wider mb-1.5">Pipeline Name *</label>
+                <label className="block text-xs font-bold text-[#0164DA] uppercase tracking-wider mb-1.5">Pipeline Name *</label>
                 <input type="text" required value={name} onChange={(e) => setName(e.target.value)}
                   className="w-full px-4 py-2.5 rounded-xl bg-crm-input-bg border border-crm-border text-crm-text-main focus:outline-none focus:border-[#0164DA] text-sm"
                   placeholder="e.g. Inbound Sales" />
               </div>
               <div>
-                <label className="block text-[10px] font-bold text-[#0164DA] uppercase tracking-wider mb-1.5">Description</label>
+                <label className="block text-xs font-bold text-[#0164DA] uppercase tracking-wider mb-1.5">Description</label>
                 <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3}
                   className="w-full px-4 py-2.5 rounded-xl bg-crm-input-bg border border-crm-border text-crm-text-main focus:outline-none focus:border-[#0164DA] text-sm resize-none"
                   placeholder="Optional description..." />

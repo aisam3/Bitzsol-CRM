@@ -63,11 +63,10 @@ export function DashboardView({
               <button
                 key={t}
                 onClick={() => setTimeframe(t)}
-                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wide transition-all cursor-pointer ${
-                  timeframe === t
-                    ? "bg-[#0164DA] text-white"
-                    : "text-crm-text-sub hover:text-crm-text-main"
-                }`}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide transition-all cursor-pointer ${timeframe === t
+                  ? "bg-[#0164DA] text-white"
+                  : "text-crm-text-sub hover:text-crm-text-main"
+                  }`}
               >
                 {t}
               </button>
@@ -163,12 +162,8 @@ export function DashboardView({
                 key={s.status}
                 className="glass rounded-xl p-3 sm:p-4 flex flex-col gap-1 hover:shadow-md transition-all duration-300"
               >
-                <p className="text-[10px] sm:text-xs text-crm-text-sub truncate">
-                  {s.status}
-                </p>
-                <p className="text-xl sm:text-2xl font-black text-crm-text-main">
-                  {s._count}
-                </p>
+                <p className="text-xs sm:text-sm text-crm-text-sub truncate">{s.status}</p>
+                <p className="text-xl sm:text-2xl font-black text-crm-text-main">{s._count}</p>
               </div>
             ))}
           </div>
@@ -201,7 +196,7 @@ export function DashboardView({
             <div className="hidden sm:block overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-crm-border text-[10px] font-bold text-crm-text-sub uppercase tracking-widest">
+                  <tr className="border-b border-crm-border text-xs font-bold text-crm-text-sub uppercase tracking-widest">
                     <th className="pb-3 text-left">Name</th>
                     <th className="pb-3 text-left hidden md:table-cell">
                       Pipeline
@@ -233,7 +228,7 @@ export function DashboardView({
                                 .join(" ")}
                             </p>
                             {lead.designation && (
-                              <p className="text-[10px] text-crm-text-sub truncate">
+                              <p className="text-xs text-crm-text-sub truncate">
                                 {lead.designation}
                               </p>
                             )}
@@ -275,20 +270,18 @@ export function DashboardView({
                         .join(" ")}
                     </p>
                     {lead.designation && (
-                      <p className="text-[10px] text-crm-text-sub">
-                        {lead.designation}
-                      </p>
+                      <p className="text-xs text-crm-text-sub">{lead.designation}</p>
                     )}
                     <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                       <StatusBadge status={lead.status} />
                       {lead.pipeline?.name && (
-                        <span className="text-[10px] text-crm-text-sub bg-crm-panel border border-crm-border px-1.5 py-0.5 rounded-md">
+                        <span className="text-[0.72rem] text-crm-text-sub bg-crm-panel border border-crm-border px-1.5 py-0.5 rounded-md">
                           {lead.pipeline.name}
                         </span>
                       )}
                     </div>
                   </div>
-                  <div className="text-[10px] text-crm-text-sub shrink-0 flex items-center gap-1">
+                  <div className="text-xs text-crm-text-sub shrink-0 flex items-center gap-1">
                     <Calendar className="w-3 h-3" />
                     {new Date(
                       lead.date ?? lead.createdAt ?? "",
@@ -314,7 +307,7 @@ export function DashboardView({
               <h3 className="text-sm sm:text-base font-bold text-crm-text-main">
                 Business Developer Breakdown
               </h3>
-              <span className="ml-auto text-[10px] font-bold text-[#03D9AF] bg-[#03D9AF]/10 px-2 py-0.5 rounded-full border border-[#03D9AF]/20">
+              <span className="ml-auto text-xs font-bold text-[#03D9AF] bg-[#03D9AF]/10 px-2 py-0.5 rounded-full border border-[#03D9AF]/20">
                 Admin Only
               </span>
             </div>
@@ -329,12 +322,8 @@ export function DashboardView({
                       {dev.userName.substring(0, 2).toUpperCase()}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-bold text-crm-text-main truncate">
-                        {dev.userName}
-                      </p>
-                      <p className="text-[10px] text-crm-text-sub">
-                        #{i + 1} BD
-                      </p>
+                      <p className="text-sm font-bold text-crm-text-main truncate">{dev.userName}</p>
+                      <p className="text-xs text-crm-text-sub">#{i + 1} BD</p>
                     </div>
                     <ArrowUpRight className="w-4 h-4 text-[#03D9AF] ml-auto shrink-0" />
                   </div>
@@ -398,7 +387,7 @@ function StatCard({
   return (
     <div className="glass p-4 sm:p-5 rounded-2xl shadow-md border border-crm-border/30 hover:shadow-lg transition-all duration-300">
       <div className="flex items-start justify-between mb-3 sm:mb-4">
-        <span className="text-[9px] sm:text-xs font-bold text-crm-text-sub uppercase tracking-wider leading-tight pr-1">
+        <span className="text-xs sm:text-sm font-bold text-crm-text-sub uppercase tracking-wider leading-tight pr-1">
           {label}
         </span>
         <div
@@ -411,9 +400,7 @@ function StatCard({
       <p className="text-2xl sm:text-3xl font-black text-crm-text-main leading-none">
         {value.toLocaleString()}
       </p>
-      {subtitle && (
-        <p className="text-[10px] text-crm-text-sub mt-1">{subtitle}</p>
-      )}
+      {subtitle && <p className="text-xs text-crm-text-sub mt-1">{subtitle}</p>}
       {trend && (
         <div className="flex items-center gap-1 mt-2">
           {trend === "up" ? (
@@ -422,9 +409,8 @@ function StatCard({
             <TrendingDown className="w-3 h-3 text-red-400" />
           )}
           <span
-            className={`text-[10px] font-bold ${
-              trend === "up" ? "text-[#03D9AF]" : "text-red-400"
-            }`}
+            className={`text-xs font-bold ${trend === "up" ? "text-[#03D9AF]" : "text-red-400"
+              }`}
           >
             Active
           </span>
@@ -446,9 +432,7 @@ function StatusBadge({ status }: { status: string }) {
     colorMap[status] ??
     "bg-crm-panel-hover text-crm-text-sub border-crm-border";
   return (
-    <span
-      className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${cls}`}
-    >
+    <span className={`text-[0.72rem] font-bold px-2 py-0.5 rounded-full border ${cls}`}>
       {status}
     </span>
   );
