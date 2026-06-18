@@ -31,6 +31,7 @@ export function LeadModal({ pipelines, lead, onClose, onSaved }: Props) {
   >([]);
 
   const [designation, setDesignation] = useState(lead?.designation ?? "");
+  const [jobTitle, setJobTitle] = useState(lead?.jobTitle ?? ""); // NEW
   const [status, setStatus] = useState(lead?.status ?? "New");
   const [leadSource, setLeadSource] = useState(lead?.leadSource ?? "Other");
   const [sourceLink, setSourceLink] = useState(lead?.sourceLink ?? "");
@@ -167,6 +168,7 @@ export function LeadModal({ pipelines, lead, onClose, onSaved }: Props) {
         middleName,
         lastName,
         designation,
+        jobTitle, // NEW
         status,
         leadSource,
         sourceLink,
@@ -378,6 +380,18 @@ export function LeadModal({ pipelines, lead, onClose, onSaved }: Props) {
                       ))}
                     </select>
                   </div>
+                </div>
+
+                {/* Job Title - NEW SECTION */}
+                <div>
+                  <label className={labelCls}>Job Title</label>
+                  <input
+                    type="text"
+                    value={jobTitle}
+                    onChange={(e) => setJobTitle(e.target.value)}
+                    className={inputCls}
+                    placeholder="e.g. Software Engineer"
+                  />
                 </div>
 
                 {/* Status & Lead Source */}

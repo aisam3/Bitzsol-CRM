@@ -57,6 +57,7 @@ export interface Lead {
   lastName?: string;
   date: string;
   designation?: string;
+  jobTitle?: string; // ✅ added
   leadSource: string;
   sourceLink?: string;
   remarks?: string;
