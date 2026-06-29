@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { linkedInUrl, pipelineId, name, headline, location, source, email } = body ?? {};
+    const { linkedInUrl, pipelineId, name, headline, location, source, email, phone, company, jobTitle, platform } = body ?? {};
 
     if (!linkedInUrl?.trim()) {
       return NextResponse.json(
@@ -64,12 +64,25 @@ export async function POST(req: NextRequest) {
     }
 
     const url = linkedInUrl.trim();
-    if (!url.includes("linkedin.com/in/")) {
-      return NextResponse.json(
-        { error: "Please provide a valid LinkedIn profile URL (linkedin.com/in/...)." },
-        { status: 400, headers }
-      );
+    // Allow LinkedIn, Upwork, Fiverr, and generic URLs
+    const isSupportedUrl =
+      url.includes("linkedin.com/in/") ||
+      url.includes("upwork.com/freelancers/") ||
+      url.includes("upwork.com/fl/") ||
+      url.includes("fiverr.com/");
+
+    // Still accept any URL that has a profile path
+    // Only reject if it's clearly not a profile
+    
+    // ── Resolve leadSource from platform or URL ───────────────────────────────
+    function resolveLeadSource(platform: string | null | undefined, url: string): string {
+      if (platform === "LinkedIn" || url.includes("linkedin.com")) return "LinkedIn";
+      if (platform === "Upwork" || url.includes("upwork.com")) return "Upwork";
+      if (platform === "Fiverr" || url.includes("fiverr.com")) return "Fiverr";
+      return "Other";
     }
+
+    const leadSource = resolveLeadSource(platform, url);
 
     // ── Resolve profile data ──────────────────────────────────────────────────
     let profile: ApifyLinkedInProfile;
@@ -82,10 +95,10 @@ export async function POST(req: NextRequest) {
       profile = {
         firstName:   nameParts[0] ?? "Unknown",
         lastName:    nameParts.slice(1).join(" ") || null as any,
-        headline:    headline?.trim() || null,
+        headline:    jobTitle?.trim() || headline?.trim() || null,
         linkedInUrl: url,
         email:       email?.trim() || null,   // scraped from page by extension
-        phone:       null,
+        phone:       phone?.trim() || null,   // scraped from page by extension
         location:    location?.trim() || null,
         summary:     null,
       };
@@ -103,6 +116,8 @@ export async function POST(req: NextRequest) {
       ...enriched,
       pipelineId: pipelineId.trim(),
       createdById: session.id,
+      company: company?.trim() || null,
+      leadSource,
     });
 
     return NextResponse.json(

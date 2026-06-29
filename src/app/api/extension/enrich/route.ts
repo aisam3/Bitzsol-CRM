@@ -9,7 +9,7 @@ const LEADMAGIC_API_URL = process.env.LEADMAGIC_API_URL;
 const LEADMAGIC_API_KEY = process.env.LEADMAGIC_API_KEY;
 
 export async function POST(req: NextRequest) {
-  const session = await getSession(req);
+  const session = await getSession();
   if (!session) {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
   }

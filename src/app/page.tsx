@@ -1,7 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import type { AuthUser, DashboardStats, Lead, Pipeline } from "@/types";
+import type {
+  AuthUser,
+  DashboardStats,
+  Lead,
+  Pipeline,
+  ActiveTab,
+} from "@/types"; // ✅ import ActiveTab
 import { AuthGate } from "@/components/auth/AuthGate";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { DashboardHeader } from "@/components/layout/DashboardHeader";
@@ -10,8 +16,9 @@ import { LeadsView } from "@/components/leads/LeadsView";
 import { PipelinesView } from "@/components/pipelines/PipelinesView";
 import { UsersView } from "@/components/users/UsersView";
 import { ProfileModal } from "@/components/profile/ProfileModal";
+import { FinanceView } from "@/components/finance/Finance";
 
-export type ActiveTab = "Dashboard" | "Leads" | "Pipelines" | "Users";
+// ✅ remove local definition of ActiveTab – it's now in @/types
 
 export default function App() {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -20,12 +27,10 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showProfileSettings, setShowProfileSettings] = useState(false);
 
-  // Real data state
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [leads, setLeads] = useState<Lead[]>([]);
   const [pipelines, setPipelines] = useState<Pipeline[]>([]);
 
-  // Check session on mount
   useEffect(() => {
     fetch("/api/auth/session")
       .then((r) => r.json())
@@ -36,7 +41,6 @@ export default function App() {
       .finally(() => setSessionLoading(false));
   }, []);
 
-  // Load data once authenticated
   useEffect(() => {
     if (!user) return;
     fetchAll();
@@ -65,8 +69,12 @@ export default function App() {
     return (
       <div className="min-h-screen bg-crm-bg flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 premium-gradient rounded-2xl flex items-center justify-center text-white font-black text-xl animate-pulse">B</div>
-          <p className="text-crm-text-sub text-sm font-semibold">Loading Bitzsol...</p>
+          <div className="w-12 h-12 premium-gradient rounded-2xl flex items-center justify-center text-white font-black text-xl animate-pulse">
+            B
+          </div>
+          <p className="text-crm-text-sub text-sm font-semibold">
+            Loading Bitzsol...
+          </p>
         </div>
       </div>
     );
@@ -74,12 +82,22 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-crm-bg text-crm-text-main font-sans relative">
-      {/* Auth gate overlays the blurred dashboard when not logged in */}
       {!user && (
-        <AuthGate onAuth={(u) => { setUser(u); fetchAll(); }} />
+        <AuthGate
+          onAuth={(u) => {
+            setUser(u);
+            fetchAll();
+          }}
+        />
       )}
 
-      <div className={`flex min-h-screen transition-all duration-500 ${!user ? "filter blur-[6px] pointer-events-none select-none opacity-40" : ""}`}>
+      <div
+        className={`flex min-h-screen transition-all duration-500 ${
+          !user
+            ? "filter blur-[6px] pointer-events-none select-none opacity-40"
+            : ""
+        }`}
+      >
         <Sidebar
           user={user}
           activeTab={activeTab}
@@ -123,14 +141,14 @@ export default function App() {
                 onRefresh={() => fetchAll()}
               />
             )}
-            {activeTab === "Users" && user?.role === "admin" && (
-              <UsersView />
-            )}
+            {activeTab === "Finance" && <FinanceView user={user} />}
+            {activeTab === "Users" && user?.role === "admin" && <UsersView />}
           </main>
 
           <footer className="py-4 sm:py-5 px-4 sm:px-6 text-center border-t border-crm-border text-xs text-crm-text-sub">
             Copyright © {new Date().getFullYear()}{" "}
-            <span className="text-crm-text-main font-bold">Bitzsol.com</span>. All rights reserved.
+            <span className="text-crm-text-main font-bold">Bitzsol.com</span>.
+            All rights reserved.
           </footer>
         </div>
       </div>

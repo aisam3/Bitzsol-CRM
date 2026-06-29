@@ -58,6 +58,7 @@ export function LeadsView({
   // Toggle Columns State
   const [showColToggle, setShowColToggle] = useState(false);
   const [visibleCols, setVisibleCols] = useState({
+    company: true, // NEW
     jobTitle: true,
     pipeline: true,
     source: true,
@@ -416,7 +417,9 @@ export function LeadsView({
                             ? "Job Title"
                             : col === "phone"
                               ? "Phone"
-                              : col.charAt(0).toUpperCase() + col.slice(1),
+                              : col === "company"
+                                ? "Company"
+                                : col.charAt(0).toUpperCase() + col.slice(1),
                     }))
                     .filter((col) =>
                       col.name.toLowerCase().includes(colSearch.toLowerCase()),
@@ -494,6 +497,11 @@ export function LeadsView({
                         ))}
                     </div>
                   </th>
+                  {visibleCols.company && (
+                    <th className="px-5 py-4 text-left hidden lg:table-cell">
+                      Company
+                    </th>
+                  )}
                   {visibleCols.jobTitle && (
                     <th className="px-5 py-4 text-left hidden sm:table-cell">
                       Job Title
@@ -600,9 +608,14 @@ export function LeadsView({
                         </div>
                       </div>
                     </td>
+                    {visibleCols.company && (
+                      <td className="px-5 py-4 text-xs text-crm-text-sub hidden lg:table-cell">
+                        {lead.company || "—"}
+                      </td>
+                    )}
                     {visibleCols.jobTitle && (
                       <td className="px-5 py-4 text-xs text-crm-text-sub hidden sm:table-cell">
-                        {lead.jobTitle || "—"}
+                        {lead.designation || lead.jobTitle || "—"}
                       </td>
                     )}
                     {visibleCols.pipeline && (
@@ -612,7 +625,25 @@ export function LeadsView({
                     )}
                     {visibleCols.source && (
                       <td className="px-5 py-4 text-xs text-crm-text-sub hidden md:table-cell">
-                        {lead.leadSource}
+                        {(() => {
+                          // Derive source from sourceLink for backward compatibility
+                          const src = lead.leadSource ||
+                            (lead.sourceLink?.includes("upwork.com") ? "Upwork" :
+                             lead.sourceLink?.includes("fiverr.com") ? "Fiverr" :
+                             lead.sourceLink?.includes("linkedin.com") ? "LinkedIn" :
+                             "Other");
+                          const icon = src === "LinkedIn" ? "💼" :
+                                       src === "Upwork" ? "🔗" :
+                                       src === "Fiverr" ? "🎯" : "🌐";
+                          const color = src === "LinkedIn" ? "text-blue-400" :
+                                        src === "Upwork" ? "text-green-400" :
+                                        src === "Fiverr" ? "text-emerald-400" : "";
+                          return (
+                            <span className={`font-semibold ${color}`}>
+                              {icon} {src}
+                            </span>
+                          );
+                        })()}
                       </td>
                     )}
                     {visibleCols.status && (

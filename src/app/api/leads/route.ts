@@ -74,8 +74,19 @@ export async function GET(req: NextRequest) {
       }),
     });
 
+    const mappedLeads = leads.map((lead) => {
+      const companyField = lead.customFields.find(
+        (cf) => cf.key.toLowerCase() === "company"
+      );
+      return {
+        ...lead,
+        jobTitle: lead.designation || undefined,
+        company: companyField?.value || undefined,
+      };
+    });
+
     return NextResponse.json({
-      data: leads,
+      data: mappedLeads,
       pagination: isAll ? null : {
         total,
         page,
@@ -98,6 +109,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const {
       firstName, middleName, lastName, date, designation,
+      jobTitle, company,
       leadSource, sourceLink, remarks, status,
       pipelineId, emails, phones, customFields, tags,
     } = body;
@@ -120,7 +132,7 @@ export async function POST(req: NextRequest) {
         middleName: middleName?.trim() || null,
         lastName: lastName?.trim() || null,
         date: date ? new Date(date) : new Date(),
-        designation: designation?.trim() || null,
+        designation: designation?.trim() || jobTitle?.trim() || null,
         leadSource: leadSource || "Other",
         sourceLink: sourceLink?.trim() || null,
         remarks: remarks?.trim() || null,
@@ -141,10 +153,13 @@ export async function POST(req: NextRequest) {
           })),
         },
         customFields: {
-          create: (customFields ?? []).map((f: { key: string; value: string }) => ({
-            key: f.key,
-            value: f.value,
-          })),
+          create: [
+            ...(customFields ?? []).map((f: { key: string; value: string }) => ({
+              key: f.key,
+              value: f.value,
+            })),
+            ...(company?.trim() ? [{ key: "Company", value: company.trim() }] : []),
+          ],
         },
       },
       include: {

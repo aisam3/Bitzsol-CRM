@@ -37,6 +37,7 @@ model User {
   image     String?
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
+   transactions Transaction[]
 
   leads     Lead[]
   pipelines Pipeline[]
@@ -101,4 +102,24 @@ model LeadCustomField {
   value  String
   leadId String
   lead   Lead   @relation(fields: [leadId], references: [id], onDelete: Cascade)
+}
+
+enum TransactionType {
+  income
+  expense
+}
+
+model Transaction {
+  id          String           @id @default(uuid())
+  date        DateTime
+  description String
+  amount      Float            // or Decimal if you need exact precision
+  type        TransactionType
+  category    String
+  invoice_url String?
+  createdById String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  createdBy   User?            @relation(fields: [createdById], references: [id])
 }

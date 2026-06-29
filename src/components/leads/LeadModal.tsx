@@ -32,6 +32,7 @@ export function LeadModal({ pipelines, lead, onClose, onSaved }: Props) {
 
   const [designation, setDesignation] = useState(lead?.designation ?? "");
   const [jobTitle, setJobTitle] = useState(lead?.jobTitle ?? ""); // NEW
+  const [company, setCompany] = useState(lead?.company ?? "");
   const [status, setStatus] = useState(lead?.status ?? "New");
   const [leadSource, setLeadSource] = useState(lead?.leadSource ?? "Other");
   const [sourceLink, setSourceLink] = useState(lead?.sourceLink ?? "");
@@ -169,6 +170,7 @@ export function LeadModal({ pipelines, lead, onClose, onSaved }: Props) {
         lastName,
         designation,
         jobTitle, // NEW
+        company,
         status,
         leadSource,
         sourceLink,
@@ -382,16 +384,28 @@ export function LeadModal({ pipelines, lead, onClose, onSaved }: Props) {
                   </div>
                 </div>
 
-                {/* Job Title - NEW SECTION */}
-                <div>
-                  <label className={labelCls}>Job Title</label>
-                  <input
-                    type="text"
-                    value={jobTitle}
-                    onChange={(e) => setJobTitle(e.target.value)}
-                    className={inputCls}
-                    placeholder="e.g. Software Engineer"
-                  />
+                {/* Job Title & Company */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className={labelCls}>Job Title</label>
+                    <input
+                      type="text"
+                      value={jobTitle}
+                      onChange={(e) => setJobTitle(e.target.value)}
+                      className={inputCls}
+                      placeholder="e.g. Software Engineer"
+                    />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Company</label>
+                    <input
+                      type="text"
+                      value={company}
+                      onChange={(e) => setCompany(e.target.value)}
+                      className={inputCls}
+                      placeholder="e.g. Google"
+                    />
+                  </div>
                 </div>
 
                 {/* Status & Lead Source */}

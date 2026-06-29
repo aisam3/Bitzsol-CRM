@@ -10,6 +10,8 @@ import type { LeadMagicEnrichment } from "@/services/leadmagic.service";
 export type CreateLeadInput = ApifyLinkedInProfile & LeadMagicEnrichment & {
   pipelineId: string;
   createdById: string;
+  company?: string | null;
+  leadSource?: string | null;
 };
 
 /**
@@ -32,6 +34,8 @@ export async function createLead(input: CreateLeadInput) {
     // LeadMagic enrichment fields
     verifiedEmail,
     verifiedPhone,
+    company,
+    leadSource,
   } = input;
 
   if (!firstName?.trim()) {
@@ -50,12 +54,18 @@ export async function createLead(input: CreateLeadInput) {
   const resolvedEmail = verifiedEmail ?? email ?? null;
   const resolvedPhone = verifiedPhone ?? phone ?? null;
 
+  // Resolve lead source: use provided leadSource, else infer from URL, else default "LinkedIn"
+  const resolvedLeadSource = leadSource?.trim() ||
+    (linkedInUrl?.includes("upwork.com") ? "Upwork" :
+     linkedInUrl?.includes("fiverr.com") ? "Fiverr" :
+     "LinkedIn");
+
   const lead = await prisma.lead.create({
     data: {
       firstName: firstName.trim(),
       lastName: lastName?.trim() || null,
       designation: headline?.trim() || null,
-      leadSource: "LinkedIn",
+      leadSource: resolvedLeadSource,
       sourceLink: linkedInUrl?.trim() || null,
       remarks: summary?.trim() || null,
       status: "New",
@@ -67,6 +77,9 @@ export async function createLead(input: CreateLeadInput) {
         : undefined,
       phones: resolvedPhone
         ? { create: [{ phone: resolvedPhone.trim(), status: verifiedPhone ? "Verified" : "Not_Verified" }] }
+        : undefined,
+      customFields: company?.trim()
+        ? { create: [{ key: "Company", value: company.trim() }] }
         : undefined,
     },
     include: {

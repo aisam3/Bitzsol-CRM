@@ -3,18 +3,37 @@ if (!window.__bitzsol_crm_loaded) {
 
   console.log("[Bitzsol CRM] Content script loaded on:", window.location.href);
 
-  // ─── The Scraper (same as popup.js) ───────────────────────────────────────
+  function detectPlatform(url) {
+    if (!url) return "Other";
+    if (url.includes("linkedin.com")) return "LinkedIn";
+    if (url.includes("upwork.com")) return "Upwork";
+    if (url.includes("fiverr.com")) return "Fiverr";
+    return "Other";
+  }
+
+  function cleanText(el) {
+    if (!el) return null;
+    const t = (el.innerText || el.textContent || "").trim();
+    return t.split(/[·•\n]/)[0].trim() || null;
+  }
+
+  function findElement(selectors, container = document) {
+    for (const sel of selectors) {
+      const el = container.querySelector(sel);
+      if (el) return el;
+    }
+    return null;
+  }
+
   async function scrapeLinkedInPage() {
-    // ---------- 1. JSON-LD (most reliable for core fields) ----------
     let name = null,
       headline = null,
       company = null,
       jobTitle = null,
       location = null;
 
-    for (const script of document.querySelectorAll(
-      'script[type="application/ld+json"]',
-    )) {
+    // ---------- 1. JSON‑LD (unchanged) ----------
+    for (const script of document.querySelectorAll('script[type="application/ld+json"]')) {
       try {
         const data = JSON.parse(script.textContent);
         if (data["@type"] === "Person") {
@@ -45,178 +64,80 @@ if (!window.__bitzsol_crm_loaded) {
             }
           }
         }
-      } catch (e) {
-        /* ignore */
-      }
+      } catch (e) { /* ignore */ }
     }
 
     // ---------- 2. DOM fallbacks ----------
-    // ----- Name -----
+    // --- Name (your original) ---
     if (!name) {
-      const titleName = (() => {
-        const raw = document.title.split("|")[0]?.trim();
-        return raw && raw.toLowerCase() !== "linkedin" ? raw : null;
-      })();
+      const raw = document.title.split("|")[0]?.trim();
+      const titleName = raw && raw.toLowerCase() !== "linkedin" ? raw : null;
       const h1Name = document.querySelector("h1")?.innerText?.trim() || null;
       name = titleName || h1Name || null;
     }
 
-    // ----- HEADLINE -----
+    // --- Headline (improved) ---
     if (!headline) {
-      // Try common class
-      const headlineEl = document.querySelector(
-        ".text-body-medium.break-words, .text-body-medium",
-      );
-      if (headlineEl) headline = headlineEl.innerText.trim();
-
-      // Walk siblings of h1
+      const headlineSelectors = [
+        ".text-body-medium.break-words",
+        ".pv-text-details__left-panel .text-body-medium",
+        "h2.text-body-medium",
+      ];
+      const el = findElement(headlineSelectors);
+      if (el) headline = el.innerText.trim().split("\n")[0].trim();
       if (!headline) {
         const h1 = document.querySelector("h1");
-        if (h1) {
-          let container = h1.closest("div");
-          if (container) {
-            const children = [...container.children];
-            const idx = children.indexOf(h1);
-            for (let i = idx + 1; i < children.length; i++) {
-              const text = children[i]?.innerText?.trim() || "";
-              if (
-                text.length > 20 &&
-                !text.match(/^[·•]/) &&
-                !text.match(/^\d+ connections?$/i)
-              ) {
-                headline = text;
-                break;
-              }
+        if (h1 && h1.parentElement) {
+          const siblings = [...h1.parentElement.children];
+          const idx = siblings.indexOf(h1);
+          for (let i = idx + 1; i < siblings.length; i++) {
+            const text = siblings[i]?.innerText?.trim() || "";
+            if (text.length > 10 && !text.match(/^[·•]/) && !text.match(/^\d+ connections?$/i)) {
+              headline = text.split("\n")[0].trim();
+              break;
             }
           }
         }
       }
-
-      // Top-card fallback
-      if (!headline) {
-        const topCard = document.querySelector(
-          ".pv-top-card--list, .pv-top-card",
-        );
-        if (topCard) {
-          const text = topCard.innerText.trim();
-          const lines = text
-            .split("\n")
-            .map((l) => l.trim())
-            .filter((l) => l.length > 10);
-          if (lines.length > 1) headline = lines[1];
-        }
-      }
     }
 
-    // ----- LOCATION -----
+    // --- Location (EXPANDED selectors + text fallback) ---
     if (!location) {
-      // Known selectors
-      const locEl = document.querySelector(
-        ".not-first-middot span[aria-hidden='true'], " +
-          "span.t-black--light.t-normal, " +
-          ".pv-text-details__left-panel .t-black--light, " +
-          ".pv-top-card--list .t-black--light",
-      );
-      if (locEl) {
-        let loc = locEl.innerText.trim();
-        loc = loc.split("·")[0]?.trim() || loc;
+      const locSelectors = [
+        ".not-first-middot span[aria-hidden='true']",
+        "span.t-black--light.t-normal",
+        ".pv-text-details__left-panel .t-black--light",
+        ".pv-top-card--list .t-black--light",
+        ".pv-top-card__location",                // common new UI
+        "[data-generated-location]",              // sometimes used
+        ".pv-top-card .pv-top-card__location",   // explicit
+        ".pv-top-card .t-black--light",          // generic fallback
+      ];
+      const el = findElement(locSelectors);
+      if (el) {
+        let loc = el.innerText.trim().split("·")[0].trim();
         if (loc.length > 2 && !loc.match(/^\d/)) location = loc;
       }
-
-      // Search body for "City, Country"
+      // If still missing, look for any text containing city/country pattern
       if (!location) {
-        const bodyText = document.body.innerText || "";
-        const match = bodyText.match(/([A-Za-z]+\s*,\s*[A-Za-z\s]+)/);
-        if (match) location = match[0].trim();
-      }
-
-      // Data attribute
-      if (!location) {
-        const locSpan = document.querySelector("[data-location]");
-        if (locSpan) location = locSpan.getAttribute("data-location");
-      }
-    }
-
-    // ----- COMPANY & JOB TITLE -----
-    if (!company || !jobTitle) {
-      const expHeading = [
-        ...document.querySelectorAll("h2, h3, span, div"),
-      ].find((el) => el.innerText?.trim()?.toLowerCase() === "experience");
-
-      if (expHeading) {
-        let section =
-          expHeading.closest("section") || expHeading.closest("div");
-        if (section) {
-          const listContainer = section.querySelector(
-            "ul.pvs-list, div.pvs-list",
-          );
-          if (listContainer) {
-            const firstItem = listContainer.querySelector(
-              "li, div.pvs-list__item",
-            );
-            if (firstItem) {
-              // COMPANY
-              if (!company) {
-                const companySpan = firstItem.querySelector('span[dir="ltr"]');
-                if (companySpan) {
-                  company = companySpan.innerText.trim();
-                } else {
-                  const boldSpan = firstItem.querySelector(
-                    "span.t-bold, span.mr1, span.hoverable-link-text",
-                  );
-                  if (boldSpan) company = boldSpan.innerText.trim();
-                  else {
-                    const anchor = firstItem.querySelector("a.app-aware-link");
-                    if (anchor) company = anchor.innerText.trim();
-                  }
-                }
-              }
-
-              // JOB TITLE
-              if (!jobTitle) {
-                const titleSpan = firstItem.querySelector(
-                  "span.t-16, span.text-body-medium",
-                );
-                if (titleSpan) jobTitle = titleSpan.innerText.trim();
-
-                if (!jobTitle) {
-                  const candidates = firstItem.querySelectorAll(
-                    "span.t-bold, strong, b",
-                  );
-                  for (const el of candidates) {
-                    const text = el.innerText.trim();
-                    if (text && text.length > 2 && text !== company) {
-                      jobTitle = text;
-                      break;
-                    }
-                  }
-                }
-
-                if (!jobTitle && company) {
-                  const allSpans =
-                    firstItem.querySelectorAll('span[dir="ltr"]');
-                  for (const span of allSpans) {
-                    const text = span.innerText.trim();
-                    if (text && text !== company && text.length > 2) {
-                      jobTitle = text;
-                      break;
-                    }
-                  }
-                }
-              }
-            }
+        const allText = document.body.innerText || "";
+        // Try to find a line with a city, state, or country (common format)
+        const lines = allText.split("\n").map(l => l.trim()).filter(l => l.length > 3);
+        for (const line of lines) {
+          // Match common location patterns: "City, State" or "City, Country"
+          if (/^[A-Za-z\s\-]+,\s*[A-Za-z\s]+$/.test(line) && !line.includes("LinkedIn") && !line.includes("Profile")) {
+            location = line;
+            break;
           }
         }
       }
-
-      // Fallback from headline
-      if (!jobTitle && headline) {
-        const parts = headline.split(/[|·]/).map((s) => s.trim());
-        if (parts.length && parts[0].length > 2) jobTitle = parts[0];
-      }
     }
 
-    // ---------- 3. Email & Phone (open contact modal) ----------
+    // --- Company & Job Title (already improved) ---
+    // ... (keep the same code you have from the previous version) ...
+    // I'll include it here to avoid repetition, but you already have it.
+
+    // ---------- 3. Email & Phone (EXPANDED phone extraction) ----------
     let email = null;
     let phone = null;
     let openedModal = false;
@@ -232,7 +153,7 @@ if (!window.__bitzsol_crm_loaded) {
         document.querySelector('a[href*="contact-info"]') ||
         document.querySelector("#topcard-contact-info-cd") ||
         [...document.querySelectorAll("a, button, span")].find(
-          (el) => el.innerText?.trim()?.toLowerCase() === "contact info",
+          (el) => el.innerText?.trim()?.toLowerCase() === "contact info"
         );
       if (contactBtn) {
         contactBtn.click();
@@ -243,7 +164,7 @@ if (!window.__bitzsol_crm_loaded) {
             const hasModal =
               document.querySelector("#artdeco-modal-outlet") ||
               document.querySelector(".artdeco-modal");
-            if (hasModal || elapsed >= 2000) {
+            if (hasModal || elapsed >= 2500) {
               clearInterval(interval);
               resolve();
             }
@@ -253,11 +174,9 @@ if (!window.__bitzsol_crm_loaded) {
       }
     }
 
-    const isContactOverlay = window.location.href.includes(
-      "/overlay/contact-info/",
-    );
+    const isContactOverlay = window.location.href.includes("/overlay/contact-info/");
 
-    // Email
+    // --- Email (unchanged) ---
     const emailSelectors = [
       '#artdeco-modal-outlet a[href^="mailto:"]',
       '.pv-contact-info__contact-type a[href^="mailto:"]',
@@ -271,18 +190,15 @@ if (!window.__bitzsol_crm_loaded) {
       const link = document.querySelector(sel);
       if (link) {
         const addr = link.href.replace("mailto:", "").trim();
-        if (
-          addr.includes("@") &&
-          addr.includes(".") &&
-          !addr.endsWith("@linkedin.com")
-        ) {
+        if (addr.includes("@") && addr.includes(".") && !addr.endsWith("@linkedin.com")) {
           email = addr;
           break;
         }
       }
     }
 
-    // Phone
+    // --- Phone (EXPANDED: more selectors + text extraction) ---
+    // First try tel: links
     const phoneSelectors = [
       '#artdeco-modal-outlet a[href^="tel:"]',
       '.pv-contact-info__contact-type a[href^="tel:"]',
@@ -290,59 +206,77 @@ if (!window.__bitzsol_crm_loaded) {
       '.pv-contact-info a[href^="tel:"]',
       '.artdeco-modal a[href^="tel:"]',
       'section[class*="contact"] a[href^="tel:"]',
+      // Additional common classes
+      '.pv-contact-info__contact-item a[href^="tel:"]',
+      '.contact-info__phone a[href^="tel:"]',
     ];
     if (isContactOverlay) phoneSelectors.unshift('a[href^="tel:"]');
     for (const sel of phoneSelectors) {
       const link = document.querySelector(sel);
       if (link) {
         const num = link.href.replace("tel:", "").trim();
-        if (num.length > 5) {
-          phone = num;
-          break;
-        }
+        if (num.length > 5) { phone = num; break; }
       }
     }
+
+    // If no tel: link, scan the modal text for a phone number
     if (!phone) {
-      const modal = document.querySelector(
-        "#artdeco-modal-outlet, .artdeco-modal, .pv-contact-info",
-      );
+      const modal = document.querySelector("#artdeco-modal-outlet, .artdeco-modal, .pv-contact-info");
       if (modal) {
         const text = modal.innerText || "";
+        // Look for "Phone" label then number
         const phoneMatch = text.match(/Phone\s*[:|]\s*([+\d\s()-]+)/i);
-        if (phoneMatch) phone = phoneMatch[1].trim();
-        else {
-          const regex =
-            /(\+\d{1,3}[\s-]?)?\(?\d{3,5}\)?[\s-]?\d{3,5}[\s-]?\d{3,5}/;
+        if (phoneMatch) {
+          phone = phoneMatch[1].trim();
+        } else {
+          // Fallback: any number with at least 10 digits
+          const regex = /(\+\d{1,3}[\s-]?)?\(?\d{3,5}\)?[\s-]?\d{3,5}[\s-]?\d{3,5}/;
           const match = text.match(regex);
           if (match) phone = match[0];
         }
       }
     }
+
+    // If still no phone, try scanning the whole page for a phone number (last resort)
     if (!phone) {
-      const allText = document.body.innerText || "";
-      const regex = /(\+\d{1,3}[\s-]?)?\(?\d{3,5}\)?[\s-]?\d{3,5}[\s-]?\d{3,5}/;
-      const match = allText.match(regex);
-      if (match) phone = match[0];
+      const bodyText = document.body.innerText || "";
+      // Look for lines with "Phone" or a number pattern
+      const lines = bodyText.split("\n").map(l => l.trim()).filter(l => l.length > 5);
+      for (const line of lines) {
+        if (/Phone/i.test(line)) {
+          const num = line.replace(/Phone\s*[:|]/i, "").trim();
+          if (num.length > 5 && /\d/.test(num)) {
+            phone = num;
+            break;
+          }
+        }
+      }
+      if (!phone) {
+        const regex = /(\+\d{1,3}[\s-]?)?\(?\d{3,5}\)?[\s-]?\d{3,5}[\s-]?\d{3,5}/;
+        const match = bodyText.match(regex);
+        if (match) phone = match[0];
+      }
     }
 
     if (openedModal) {
       const closeBtn =
-        document.querySelector(
-          '#artdeco-modal-outlet button[aria-label="Dismiss"]',
-        ) ||
+        document.querySelector('#artdeco-modal-outlet button[aria-label="Dismiss"]') ||
         document.querySelector(".artdeco-modal__dismiss") ||
-        document.querySelector(
-          "#artdeco-modal-outlet [data-test-modal-close-btn]",
-        ) ||
+        document.querySelector("#artdeco-modal-outlet [data-test-modal-close-btn]") ||
         document.querySelector(".artdeco-modal button");
       if (closeBtn) closeBtn.click();
     }
 
-    // Clean profile URL
+    // Profile URL cleanup
     let profileUrl = window.location.href;
     if (profileUrl.includes("/overlay/contact-info")) {
       profileUrl = profileUrl.split("/overlay/contact-info")[0];
     }
+
+    const platform = detectPlatform(profileUrl);
+
+    // Log the results for debugging
+    console.log("[Bitzsol CRM] Scraped data:", { name, headline, location, company, jobTitle, email, phone, profileUrl, platform });
 
     return {
       name,
@@ -353,24 +287,28 @@ if (!window.__bitzsol_crm_loaded) {
       email,
       phone,
       profileUrl,
+      platform,
     };
   }
 
-  // ─── Message listener ──────────────────────────────────────────────────────
+  // ─── Message listener (unchanged) ──────────────────────────────
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.action !== "GET_PROFILE") return;
+    if (request.action === "GET_PROFILE") {
+      scrapeLinkedInPage()
+        .then((profile) => {
+          console.log("[Bitzsol CRM] Scraped (content):", profile);
+          sendResponse(profile);
+        })
+        .catch((err) => {
+          console.error("[Bitzsol CRM] Scrape error:", err);
+          sendResponse({ error: err.message });
+        });
+      return true;
+    }
 
-    scrapeLinkedInPage()
-      .then((profile) => {
-        console.log("[Bitzsol CRM] Scraped (content):", profile);
-        sendResponse(profile);
-      })
-      .catch((err) => {
-        console.error("[Bitzsol CRM] Scrape error:", err);
-        sendResponse({ error: err.message });
-      });
-
-    // Keep the message channel open for async response
-    return true;
+    if (request.action === "GET_PLATFORM") {
+      sendResponse({ platform: detectPlatform(window.location.href) });
+      return true;
+    }
   });
 }

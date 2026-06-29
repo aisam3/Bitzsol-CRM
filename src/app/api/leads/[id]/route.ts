@@ -29,7 +29,16 @@ export async function GET(_req: NextRequest, { params }: Params) {
       return NextResponse.json({ error: "Forbidden." }, { status: 403 });
     }
 
-    return NextResponse.json({ data: lead });
+    const companyField = lead.customFields.find(
+      (cf) => cf.key.toLowerCase() === "company"
+    );
+    const mappedLead = {
+      ...lead,
+      jobTitle: lead.designation || undefined,
+      company: companyField?.value || undefined,
+    };
+
+    return NextResponse.json({ data: mappedLead });
   } catch (err) {
     console.error("[GET /api/leads/[id]]", err);
     return NextResponse.json({ error: "Internal server error." }, { status: 500 });
@@ -53,6 +62,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     const body = await req.json();
     const {
       firstName, middleName, lastName, date, designation,
+      jobTitle, company,
       leadSource, sourceLink, remarks, status,
       emails, phones, customFields, tags,
     } = body;
@@ -62,7 +72,10 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     if (middleName !== undefined) updateData.middleName = middleName?.trim() || null;
     if (lastName !== undefined) updateData.lastName = lastName?.trim() || null;
     if (date !== undefined) updateData.date = new Date(date);
+    
     if (designation !== undefined) updateData.designation = designation?.trim() || null;
+    else if (jobTitle !== undefined) updateData.designation = jobTitle?.trim() || null;
+
     if (leadSource !== undefined) updateData.leadSource = leadSource;
     if (sourceLink !== undefined) updateData.sourceLink = sourceLink?.trim() || null;
     if (remarks !== undefined) updateData.remarks = remarks?.trim() || null;
@@ -88,10 +101,34 @@ export async function PATCH(req: NextRequest, { params }: Params) {
         })),
       };
     }
-    if (customFields !== undefined) {
+
+    if (customFields !== undefined || company !== undefined) {
+      let finalFields = customFields;
+      if (finalFields === undefined) {
+        const currentFields = await prisma.leadCustomField.findMany({ where: { leadId: id } });
+        finalFields = currentFields.map(f => ({ key: f.key, value: f.value }));
+      }
+      
+      finalFields = finalFields.filter((f: any) => f.key.toLowerCase() !== "company");
+      
+      if (company !== undefined && company !== null) {
+        if (company.trim()) {
+          finalFields.push({ key: "Company", value: company.trim() });
+        }
+      } else {
+        if (customFields === undefined) {
+          const existingCompany = await prisma.leadCustomField.findFirst({
+            where: { leadId: id, key: { equals: "Company", mode: "insensitive" } }
+          });
+          if (existingCompany) {
+            finalFields.push({ key: "Company", value: existingCompany.value });
+          }
+        }
+      }
+
       await prisma.leadCustomField.deleteMany({ where: { leadId: id } });
       updateData.customFields = {
-        create: customFields.map((f: { key: string; value: string }) => ({
+        create: finalFields.map((f: { key: string; value: string }) => ({
           key: f.key,
           value: f.value,
         })),
@@ -110,7 +147,16 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       },
     });
 
-    return NextResponse.json({ data: lead, message: "Lead updated." });
+    const companyField = lead.customFields.find(
+      (cf) => cf.key.toLowerCase() === "company"
+    );
+    const mappedLead = {
+      ...lead,
+      jobTitle: lead.designation || undefined,
+      company: companyField?.value || undefined,
+    };
+
+    return NextResponse.json({ data: mappedLead, message: "Lead updated." });
   } catch (err: any) {
     console.error("[PATCH /api/leads/[id]]", err);
     return NextResponse.json({ error: err.message || "Internal server error." }, { status: 500 });

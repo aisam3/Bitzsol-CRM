@@ -1,7 +1,9 @@
+
 export type Role = "admin" | "business_developer";
 export type UserStatus = "active" | "inactive";
 export type LeadEmailStatus = "Verified" | "Not_Verified";
 export type LeadPhoneStatus = "Verified" | "Not_Verified";
+export type ActiveTab = "Dashboard" | "Leads" | "Pipelines" | "Finance" | "Users";
 
 export interface AuthUser {
   id: string;
@@ -58,6 +60,7 @@ export interface Lead {
   date: string;
   designation?: string;
   jobTitle?: string; // ✅ added
+  company?: string; // ✅ added
   leadSource: string;
   sourceLink?: string;
   remarks?: string;

@@ -2,7 +2,7 @@
 
 import { Menu, Bell, ChevronRight, Sun, Moon, ChevronDown, LogOut, Settings } from "lucide-react";
 import type { AuthUser } from "@/types";
-import type { ActiveTab } from "@/app/page";
+import type { ActiveTab } from "@/types";
 import { useTheme } from "next-themes";
 import { useState, useEffect } from "react";
 
