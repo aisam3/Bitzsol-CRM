@@ -53,7 +53,11 @@ export function FinanceView({ user }: Props) {
   const [totalTransactions, setTotalTransactions] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({ totalIncome: 0, totalExpense: 0, profit: 0 });
+  const [stats, setStats] = useState({
+    totalIncome: 0,
+    totalExpense: 0,
+    profit: 0,
+  });
   const [uploading, setUploading] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -75,13 +79,20 @@ export function FinanceView({ user }: Props) {
 
   // Get role
   const isAdmin = user?.role === "admin";
+  const isFinanceAdmin = user?.role === "finance_admin";
+  const isFinanceMember = user?.role === "finance_member";
   const isBD = user?.role === "business_developer";
+  const canManageFinance = isAdmin || isFinanceAdmin || isFinanceMember;
+  const canAddExpense = isAdmin || isFinanceAdmin || isFinanceMember;
+  const canAddIncome = isAdmin || isFinanceAdmin || isFinanceMember;
+  const showIncomeColumn = isAdmin || isFinanceAdmin;
+  const showProfitColumn = isAdmin || isFinanceAdmin;
 
   // Visible tabs
   const visibleTabs: Tab[] = [];
-  if (isAdmin || isBD) visibleTabs.push("expense");
-  if (isAdmin) visibleTabs.push("income");
-  if (isAdmin) visibleTabs.push("profit");
+  if (canManageFinance) visibleTabs.push("expense");
+  if (isAdmin || isFinanceAdmin || isFinanceMember) visibleTabs.push("income");
+  if (isAdmin || isFinanceAdmin) visibleTabs.push("profit");
 
   if (!visibleTabs.includes(activeTab) && visibleTabs.length > 0) {
     setActiveTab(visibleTabs[0]);
@@ -273,81 +284,96 @@ export function FinanceView({ user }: Props) {
   // ─── Render ──────────────────────────────────────────────────────────
   return (
     <div className="space-y-5 sm:space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-crm-text-sub text-sm">
-            <span className="text-crm-text-main font-bold">
-              Finance Overview
-            </span>
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex bg-crm-panel border border-crm-border rounded-xl p-1">
-            {(["week", "month", "year"] as const).map((t) => (
+      <div className="rounded-[28px] border border-crm-border/70 bg-gradient-to-br from-[#0164DA]/12 via-crm-panel to-[#03D9AF]/10 p-4 sm:p-6 shadow-[0_20px_60px_rgba(1,100,218,0.08)] backdrop-blur-sm transition-all duration-300">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+          <div className="max-w-2xl">
+            <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-crm-text-sub">
+              {isFinanceMember
+                ? "Personal finance workspace"
+                : isFinanceAdmin
+                  ? "Finance administration"
+                  : "Finance overview"}
+            </p>
+            <h2 className="mt-2 text-xl sm:text-2xl font-black text-crm-text-main">
+              {isFinanceMember
+                ? "Keep your finance activity organized in one place"
+                : "Track transactions, manage controls, and stay on top of cash flow"}
+            </h2>
+            <p className="mt-2 text-sm text-crm-text-sub leading-6">
+              {isFinanceMember
+                ? "Add and review your own finance entries quickly with a clean, mobile-friendly workflow."
+                : "Review financial activity with clear filtering, time ranges, and action buttons designed for daily use."}
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row flex-wrap items-stretch gap-2">
+            <div className="flex bg-crm-panel border border-crm-border rounded-xl p-1">
+              {(["week", "month", "year"] as const).map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setTimeFilter(t)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide transition-all cursor-pointer ${
+                    timeFilter === t
+                      ? "bg-[#0164DA] text-white"
+                      : "text-crm-text-sub hover:text-crm-text-main"
+                  }`}
+                >
+                  {t}
+                </button>
+              ))}
               <button
-                key={t}
-                onClick={() => setTimeFilter(t)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide transition-all cursor-pointer ${
-                  timeFilter === t
+                onClick={() => setTimeFilter("custom")}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide transition-all cursor-pointer flex items-center gap-1 ${
+                  timeFilter === "custom"
                     ? "bg-[#0164DA] text-white"
                     : "text-crm-text-sub hover:text-crm-text-main"
                 }`}
               >
-                {t}
+                <Calendar className="w-3 h-3" />
+                Custom
               </button>
-            ))}
-            <button
-              onClick={() => setTimeFilter("custom")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide transition-all cursor-pointer flex items-center gap-1 ${
-                timeFilter === "custom"
-                  ? "bg-[#0164DA] text-white"
-                  : "text-crm-text-sub hover:text-crm-text-main"
-              }`}
-            >
-              <Calendar className="w-3 h-3" />
-              Custom
-            </button>
-          </div>
-          {timeFilter === "custom" && (
-            <input
-              type="date"
-              value={customDate ? customDate.toISOString().split("T")[0] : ""}
-              onChange={(e) =>
-                setCustomDate(e.target.value ? new Date(e.target.value) : null)
-              }
-              className="bg-crm-panel border border-crm-border rounded-xl px-3 py-2 text-sm text-crm-text-main focus:outline-none focus:border-[#0164DA]"
-            />
-          )}
-          {(isAdmin || isBD) && (
-            <>
+            </div>
+            {timeFilter === "custom" && (
+              <input
+                type="date"
+                value={customDate ? customDate.toISOString().split("T")[0] : ""}
+                onChange={(e) =>
+                  setCustomDate(
+                    e.target.value ? new Date(e.target.value) : null,
+                  )
+                }
+                className="bg-crm-panel border border-crm-border rounded-xl px-3 py-2 text-sm text-crm-text-main focus:outline-none focus:border-[#0164DA]"
+              />
+            )}
+            {canAddExpense && (
               <button
                 onClick={() => setShowAddModal("expense")}
-                className="flex items-center gap-2 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-bold rounded-xl transition-all cursor-pointer border border-red-500/20"
+                className="flex items-center justify-center gap-2 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-bold rounded-xl transition-all cursor-pointer border border-red-500/20"
               >
                 <Plus className="w-3.5 h-3.5" /> Add Expense
               </button>
+            )}
+            {canAddIncome && (
               <button
                 onClick={() => setShowAddModal("income")}
-                className="flex items-center gap-2 px-4 py-2 bg-[#03D9AF]/10 hover:bg-[#03D9AF]/20 text-[#03D9AF] text-xs font-bold rounded-xl transition-all cursor-pointer border border-[#03D9AF]/20"
+                className="flex items-center justify-center gap-2 px-4 py-2 bg-[#03D9AF]/10 hover:bg-[#03D9AF]/20 text-[#03D9AF] text-xs font-bold rounded-xl transition-all cursor-pointer border border-[#03D9AF]/20"
               >
                 <Plus className="w-3.5 h-3.5" /> Add Income
               </button>
-            </>
-          )}
+            )}
+          </div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-crm-border/40 overflow-x-auto">
+      <div className="flex border-b border-crm-border/40 overflow-x-auto rounded-2xl bg-crm-panel/70 px-1 py-1 shadow-sm">
         {visibleTabs.map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-5 py-3 text-sm font-bold uppercase tracking-wide transition-all cursor-pointer border-b-2 whitespace-nowrap ${
+            className={`px-5 py-3 text-sm font-bold uppercase tracking-wide transition-all duration-300 cursor-pointer border-b-2 whitespace-nowrap rounded-xl ${
               activeTab === tab
-                ? "text-[#0164DA] border-[#0164DA]"
-                : "text-crm-text-sub border-transparent hover:text-crm-text-main"
+                ? "text-[#0164DA] border-[#0164DA] bg-[#0164DA]/8"
+                : "text-crm-text-sub border-transparent hover:text-crm-text-main hover:bg-crm-panel-hover"
             }`}
           >
             {tab === "expense" && "Expenses"}
@@ -358,35 +384,39 @@ export function FinanceView({ user }: Props) {
       </div>
 
       {/* Summary Cards */}
-      <div className={`grid gap-3 sm:gap-5 ${isAdmin ? "grid-cols-2 lg:grid-cols-3" : "grid-cols-1 max-w-sm"}`}>
-        {isAdmin && (
+      {!isFinanceMember && (
+        <div
+          className={`grid gap-3 sm:gap-5 ${isAdmin || isFinanceAdmin ? "grid-cols-2 lg:grid-cols-3" : "grid-cols-1 max-w-sm"}`}
+        >
+          {(isAdmin || isFinanceAdmin) && (
+            <StatCard
+              label="Total Income"
+              value={totalIncome}
+              icon={TrendingUp}
+              color="#03D9AF"
+            />
+          )}
           <StatCard
-            label="Total Income"
-            value={totalIncome}
-            icon={TrendingUp}
-            color="#03D9AF"
+            label="Total Expenses"
+            value={totalExpense}
+            icon={TrendingDown}
+            color="#EF4444"
           />
-        )}
-        <StatCard
-          label="Total Expenses"
-          value={totalExpense}
-          icon={TrendingDown}
-          color="#EF4444"
-        />
-        {isAdmin && (
-          <StatCard
-            label="Net Profit"
-            value={profit}
-            icon={FileText}
-            color={profit >= 0 ? "#0164DA" : "#EF4444"}
-          />
-        )}
-      </div>
+          {(isAdmin || isFinanceAdmin) && (
+            <StatCard
+              label="Net Profit"
+              value={profit}
+              icon={FileText}
+              color={profit >= 0 ? "#0164DA" : "#EF4444"}
+            />
+          )}
+        </div>
+      )}
 
       {/* Transaction Table */}
-      <div className="glass p-4 sm:p-6 rounded-2xl shadow-md border border-crm-border/30">
+      <div className="glass p-4 sm:p-6 rounded-2xl shadow-md border border-crm-border/30 overflow-hidden">
         {/* Search and filters */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3 mb-4">
           <div className="relative flex-1 min-w-[200px]">
             <input
               type="text"
@@ -494,7 +524,7 @@ export function FinanceView({ user }: Props) {
                           ))}
                       </div>
                     </th>
-                    {isAdmin && (
+                    {showIncomeColumn && (
                       <th
                         className="pb-3 text-right cursor-pointer hover:text-crm-text-main"
                         onClick={() => handleSort("amount")}
@@ -510,7 +540,11 @@ export function FinanceView({ user }: Props) {
                         </div>
                       </th>
                     )}
-                    {isAdmin && <th className="pb-3 text-right">Profit</th>}
+                    {isFinanceMember ? (
+                      <th className="pb-3 text-right">Amount</th>
+                    ) : showProfitColumn ? (
+                      <th className="pb-3 text-right">Profit</th>
+                    ) : null}
                     <th className="pb-3 text-right">Invoice</th>
                   </tr>
                 </thead>
@@ -544,18 +578,23 @@ export function FinanceView({ user }: Props) {
                             ? `PKR${Math.abs(tx.amount).toFixed(2)}`
                             : "-"}
                         </td>
-                        {isAdmin && (
+                        {showIncomeColumn && (
                           <td className="py-3 pr-4 text-right text-sm font-mono text-[#03D9AF]">
                             {tx.type === "income"
                               ? `PKR${tx.amount.toFixed(2)}`
                               : "-"}
                           </td>
                         )}
-                        {isAdmin && (
+                        {isFinanceMember ? (
+                          <td className="py-3 pr-4 text-right text-sm font-mono font-bold text-crm-text-main">
+                            {tx.type === "income" ? "+" : "-"}PKR
+                            {Math.abs(tx.amount).toFixed(2)}
+                          </td>
+                        ) : showProfitColumn ? (
                           <td className="py-3 pr-4 text-right text-sm font-mono font-bold text-crm-text-main">
                             PKR{runningProfit.toFixed(2)}
                           </td>
-                        )}
+                        ) : null}
                         <td className="py-3 text-right">
                           <div className="flex items-center justify-end gap-2">
                             {tx.invoice_url ? (
@@ -748,9 +787,12 @@ export function FinanceView({ user }: Props) {
             <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center mb-4 mx-auto border border-red-500/20">
               <Trash2 className="w-6 h-6 text-red-500" />
             </div>
-            <h4 className="text-lg font-bold text-center mb-2">Delete Transaction?</h4>
+            <h4 className="text-lg font-bold text-center mb-2">
+              Delete Transaction?
+            </h4>
             <p className="text-sm text-crm-text-sub text-center mb-6">
-              This action cannot be undone. The transaction will be permanently removed.
+              This action cannot be undone. The transaction will be permanently
+              removed.
             </p>
             <div className="flex gap-3">
               <button

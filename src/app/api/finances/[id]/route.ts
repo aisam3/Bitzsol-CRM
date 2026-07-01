@@ -10,12 +10,15 @@ export async function PATCH(
   const session = await getSession();
   if (!session)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    
+
   const whereClause: any = { id };
-  if (session.role === "business_developer") {
+  if (
+    session.role === "business_developer" ||
+    session.role === "finance_member"
+  ) {
     whereClause.createdById = session.id;
   }
-  
+
   const { invoice_url } = await req.json();
   const transaction = await prisma.transaction.update({
     where: whereClause,
@@ -32,12 +35,15 @@ export async function DELETE(
   const session = await getSession();
   if (!session)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    
+
   const whereClause: any = { id };
-  if (session.role === "business_developer") {
+  if (
+    session.role === "business_developer" ||
+    session.role === "finance_member"
+  ) {
     whereClause.createdById = session.id;
   }
-  
+
   await prisma.transaction.delete({
     where: whereClause,
   });

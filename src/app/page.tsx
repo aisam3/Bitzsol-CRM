@@ -18,7 +18,23 @@ import { UsersView } from "@/components/users/UsersView";
 import { ProfileModal } from "@/components/profile/ProfileModal";
 import { FinanceView } from "@/components/finance/Finance";
 
-// ✅ remove local definition of ActiveTab – it's now in @/types
+function getVisibleTabs(role?: string): ActiveTab[] {
+  if (role === "finance_admin" || role === "finance_member") {
+    return ["Finance"];
+  }
+
+  const tabs: ActiveTab[] = ["Dashboard"];
+
+  if (role === "admin" || role === "business_developer") {
+    tabs.push("Leads", "Pipelines");
+  }
+
+  if (role === "admin") {
+    tabs.push("Users");
+  }
+
+  return tabs;
+}
 
 export default function App() {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -30,6 +46,9 @@ export default function App() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [leads, setLeads] = useState<Lead[]>([]);
   const [pipelines, setPipelines] = useState<Pipeline[]>([]);
+  const visibleTabs = getVisibleTabs(user?.role);
+  const isFinanceRole =
+    user?.role === "finance_admin" || user?.role === "finance_member";
 
   useEffect(() => {
     fetch("/api/auth/session")
@@ -44,6 +63,20 @@ export default function App() {
   useEffect(() => {
     if (!user) return;
     fetchAll();
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+    if (!visibleTabs.includes(activeTab)) {
+      setActiveTab(visibleTabs[0]);
+    }
+  }, [activeTab, user, visibleTabs]);
+
+  useEffect(() => {
+    if (!user) return;
+    if (user.role === "finance_admin" || user.role === "finance_member") {
+      setActiveTab("Finance");
+    }
   }, [user]);
 
   async function fetchAll() {
@@ -107,7 +140,9 @@ export default function App() {
           onClose={() => setSidebarOpen(false)}
         />
 
-        <div className="flex-1 md:pl-64 flex flex-col min-h-screen">
+        <div
+          className={`flex-1 ${isFinanceRole ? "md:pl-20" : "md:pl-64"} flex flex-col min-h-screen transition-all duration-300`}
+        >
           <DashboardHeader
             user={user}
             onMenuOpen={() => setSidebarOpen(true)}
@@ -116,7 +151,7 @@ export default function App() {
             onOpenProfileSettings={() => setShowProfileSettings(true)}
           />
 
-          <main className="flex-1 p-4 sm:p-6">
+          <main className="flex-1 p-4 sm:p-6 lg:p-8 transition-all duration-300">
             {activeTab === "Dashboard" && (
               <DashboardView
                 user={user}

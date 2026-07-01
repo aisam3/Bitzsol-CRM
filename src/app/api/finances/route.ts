@@ -23,8 +23,11 @@ export async function GET(req: NextRequest) {
     : undefined;
 
   const where: any = {};
-  
-  if (session.role === "business_developer") {
+
+  if (
+    session.role === "business_developer" ||
+    session.role === "finance_member"
+  ) {
     where.createdById = session.id;
   }
 
@@ -42,23 +45,24 @@ export async function GET(req: NextRequest) {
 
   if (type) where.type = type;
 
-  const [transactions, total, incomeAggregate, expenseAggregate] = await Promise.all([
-    prisma.transaction.findMany({
-      where,
-      skip: (page - 1) * limit,
-      take: limit,
-      orderBy: { [sortField]: sortOrder },
-    }),
-    prisma.transaction.count({ where }),
-    prisma.transaction.aggregate({
-      where: { ...statsWhere, type: "income" },
-      _sum: { amount: true },
-    }),
-    prisma.transaction.aggregate({
-      where: { ...statsWhere, type: "expense" },
-      _sum: { amount: true },
-    }),
-  ]);
+  const [transactions, total, incomeAggregate, expenseAggregate] =
+    await Promise.all([
+      prisma.transaction.findMany({
+        where,
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: { [sortField]: sortOrder },
+      }),
+      prisma.transaction.count({ where }),
+      prisma.transaction.aggregate({
+        where: { ...statsWhere, type: "income" },
+        _sum: { amount: true },
+      }),
+      prisma.transaction.aggregate({
+        where: { ...statsWhere, type: "expense" },
+        _sum: { amount: true },
+      }),
+    ]);
 
   const totalIncome = incomeAggregate._sum.amount || 0;
   const totalExpense = Math.abs(expenseAggregate._sum.amount || 0);
@@ -82,6 +86,10 @@ export async function POST(req: NextRequest) {
   const { type, description, amount, category } = await req.json();
   if (!type || !description || !amount || !category)
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+
+  if (session.role === "business_developer") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
 
   const transaction = await prisma.transaction.create({
     data: {

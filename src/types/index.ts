@@ -1,9 +1,17 @@
-
-export type Role = "admin" | "business_developer";
+export type Role =
+  | "admin"
+  | "business_developer"
+  | "finance_member"
+  | "finance_admin";
 export type UserStatus = "active" | "inactive";
 export type LeadEmailStatus = "Verified" | "Not_Verified";
 export type LeadPhoneStatus = "Verified" | "Not_Verified";
-export type ActiveTab = "Dashboard" | "Leads" | "Pipelines" | "Finance" | "Users";
+export type ActiveTab =
+  | "Dashboard"
+  | "Leads"
+  | "Pipelines"
+  | "Finance"
+  | "Users";
 
 export interface AuthUser {
   id: string;

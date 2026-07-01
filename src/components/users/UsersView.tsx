@@ -17,6 +17,10 @@ import {
 } from "lucide-react";
 import type { User } from "@/types";
 
+// Extend the User type to include the new roles (if not already in types)
+// We'll use a union type locally; you can also update the global type.
+type UserRole = "admin" | "business_developer" | "finance_member" | "finance_admin";
+
 export function UsersView() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -28,14 +32,13 @@ export function UsersView() {
   const [formError, setFormError] = useState("");
   const [saving, setSaving] = useState(false);
 
-  // Show/hide password toggle
   const [showPassword, setShowPassword] = useState(false);
 
   // Form fields
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<"admin" | "business_developer">("business_developer");
+  const [role, setRole] = useState<UserRole>("business_developer");
   const [status, setStatus] = useState<"active" | "inactive">("active");
   const [image, setImage] = useState<string | null>(null);
 
@@ -63,7 +66,7 @@ export function UsersView() {
       const data = await res.json();
       if (data.data) {
         setUsers(data.data);
-        setError(""); // Clear any previous error
+        setError("");
       } else {
         setError(data.error ?? "Failed to load users.");
       }
@@ -90,7 +93,7 @@ export function UsersView() {
     setName(u.name);
     setEmail(u.email);
     setPassword("");
-    setRole(u.role);
+    setRole(u.role as UserRole); // cast if needed
     setStatus(u.status);
     setImage(u.image || null);
     setEditUser(u);
@@ -159,7 +162,6 @@ export function UsersView() {
     fetchUsers();
   }
 
-  // Sorting Handler
   const handleSort = (field: typeof sortField) => {
     if (sortField === field) {
       setSortOrder(sortOrder === "asc" ? "desc" : "asc");
@@ -170,12 +172,10 @@ export function UsersView() {
     setCurrentPage(1);
   };
 
-  // Toggle Column Visibility
   const toggleColumn = (col: keyof typeof visibleCols) => {
     setVisibleCols((prev) => ({ ...prev, [col]: !prev[col] }));
   };
 
-  // Filtered & Sorted Users
   const filteredUsers = users
     .filter((u) => {
       const q = searchQuery.toLowerCase().trim();
@@ -196,7 +196,6 @@ export function UsersView() {
       return sortOrder === "asc" ? comparison : -comparison;
     });
 
-  // Paginated Users
   const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedUsers = filteredUsers.slice(startIndex, startIndex + itemsPerPage);
@@ -205,6 +204,37 @@ export function UsersView() {
     "w-full px-4 py-2.5 rounded-xl bg-crm-input-bg border border-crm-border text-crm-text-main focus:outline-none focus:border-[#0164DA] text-sm";
   const labelCls =
     "block text-xs font-bold text-[#0164DA] uppercase tracking-wider mb-1.5";
+
+  // Helper to get role badge styles
+  const getRoleBadge = (role: string) => {
+    switch (role) {
+      case "admin":
+        return {
+          label: "Admin",
+          className: "bg-[#0164DA]/10 text-[#0164DA] border-[#0164DA]/20",
+        };
+      case "business_developer":
+        return {
+          label: "Business Dev",
+          className: "bg-[#FB66BC]/10 text-[#FB66BC] border-[#FB66BC]/20",
+        };
+      case "finance_admin":
+        return {
+          label: "Finance Admin",
+          className: "bg-[#03D9AF]/10 text-[#03D9AF] border-[#03D9AF]/20",
+        };
+      case "finance_member":
+        return {
+          label: "Finance Member",
+          className: "bg-purple-500/10 text-purple-400 border-purple-500/20",
+        };
+      default:
+        return {
+          label: role,
+          className: "bg-crm-panel-hover text-crm-text-sub border-crm-border",
+        };
+    }
+  };
 
   return (
     <div className="space-y-5">
@@ -226,7 +256,6 @@ export function UsersView() {
 
       {/* Advanced Toolbar */}
       <div className="flex flex-row gap-2 items-center justify-between glass p-3 sm:p-4 rounded-2xl shadow-md border border-crm-border/30">
-        {/* Search */}
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-crm-text-sub" />
           <input
@@ -241,7 +270,6 @@ export function UsersView() {
           />
         </div>
 
-        {/* Columns Dropdown Toggle — hidden on mobile since mobile shows a unified card view */}
         <div className="relative hidden sm:block">
           <button
             onClick={() => setShowColDropdown(!showColDropdown)}
@@ -310,12 +338,11 @@ export function UsersView() {
         </div>
       ) : (
         <div className="glass rounded-2xl overflow-hidden shadow-md border border-crm-border/30">
-          {/* Desktop Table View — hidden on mobile */}
+          {/* Desktop Table View */}
           <div className="hidden sm:block overflow-x-auto">
             <table className="w-full">
               <thead className="border-b border-crm-border">
                 <tr className="text-xs font-bold text-crm-text-sub uppercase tracking-widest select-none">
-                  {/* Name Sort Header */}
                   <th
                     className="px-5 py-4 text-left cursor-pointer hover:text-crm-text-main transition-colors"
                     onClick={() => handleSort("name")}
@@ -331,7 +358,6 @@ export function UsersView() {
                     </div>
                   </th>
 
-                  {/* Role Sort Header */}
                   {visibleCols.role && (
                     <th
                       className="px-5 py-4 text-left cursor-pointer hover:text-crm-text-main transition-colors hidden sm:table-cell"
@@ -349,7 +375,6 @@ export function UsersView() {
                     </th>
                   )}
 
-                  {/* Joined Date Sort Header */}
                   {visibleCols.joined && (
                     <th
                       className="px-5 py-4 text-left cursor-pointer hover:text-crm-text-main transition-colors hidden md:table-cell"
@@ -367,7 +392,6 @@ export function UsersView() {
                     </th>
                   )}
 
-                  {/* Status Sort Header */}
                   {visibleCols.status && (
                     <th
                       className="px-5 py-4 text-left cursor-pointer hover:text-crm-text-main transition-colors"
@@ -389,149 +413,142 @@ export function UsersView() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-crm-border/40">
-                {paginatedUsers.map((u) => (
-                  <tr key={u.id} className="hover:bg-crm-panel-hover/30 transition-colors">
-                    {/* User Profile Cell */}
-                    <td className="px-5 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg premium-gradient flex items-center justify-center text-white font-bold text-xs shadow-sm overflow-hidden">
-                          {u.image ? (
-                            <img src={u.image} alt={u.name} className="w-full h-full object-cover" />
-                          ) : (
-                            u.name.substring(0, 2).toUpperCase()
-                          )}
-                        </div>
-                        <div>
-                          <p className="text-sm font-bold text-crm-text-main">{u.name}</p>
-                          <p className="text-xs text-crm-text-sub">{u.email}</p>
-                        </div>
-                      </div>
-                    </td>
-
-                    {/* Role Cell */}
-                    {visibleCols.role && (
-                      <td className="px-5 py-4 hidden sm:table-cell">
-                        <span
-                          className={`text-[0.72rem] font-bold px-2 py-0.5 rounded-full border ${
-                            u.role === "admin"
-                              ? "bg-[#0164DA]/10 text-[#0164DA] border-[#0164DA]/20"
-                              : "bg-[#FB66BC]/10 text-[#FB66BC] border-[#FB66BC]/20"
-                          }`}
-                        >
-                          {u.role === "admin" ? "Admin" : "Business Dev"}
-                        </span>
-                      </td>
-                    )}
-
-                    {/* Date Cell */}
-                    {visibleCols.joined && (
-                      <td className="px-5 py-4 text-xs text-crm-text-sub hidden md:table-cell">
-                        {new Date(u.createdAt).toLocaleDateString()}
-                      </td>
-                    )}
-
-                    {/* Inline Status Cell */}
-                    {visibleCols.status && (
+                {paginatedUsers.map((u) => {
+                  const roleInfo = getRoleBadge(u.role);
+                  return (
+                    <tr key={u.id} className="hover:bg-crm-panel-hover/30 transition-colors">
                       <td className="px-5 py-4">
-                        <button
-                          onClick={() => toggleStatus(u)}
-                          className={`text-[0.72rem] font-bold px-2 py-0.5 rounded-full border cursor-pointer transition-all ${
-                            u.status === "active"
-                              ? "bg-[#03D9AF]/10 text-[#03D9AF] border-[#03D9AF]/20 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20"
-                              : "bg-red-500/10 text-red-400 border-red-500/20 hover:bg-[#03D9AF]/10 hover:text-[#03D9AF] hover:border-[#03D9AF]/20"
-                          }`}
-                        >
-                          {u.status === "active" ? "Active" : "Inactive"}
-                        </button>
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg premium-gradient flex items-center justify-center text-white font-bold text-xs shadow-sm overflow-hidden">
+                            {u.image ? (
+                              <img src={u.image} alt={u.name} className="w-full h-full object-cover" />
+                            ) : (
+                              u.name.substring(0, 2).toUpperCase()
+                            )}
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-crm-text-main">{u.name}</p>
+                            <p className="text-xs text-crm-text-sub">{u.email}</p>
+                          </div>
+                        </div>
                       </td>
-                    )}
 
-                    {/* Actions Cell */}
-                    <td className="px-5 py-4 text-right">
-                      <div className="flex items-center gap-2 justify-end">
-                        <button
-                          onClick={() => openEdit(u)}
-                          className="w-7 h-7 rounded-lg bg-[#0164DA]/10 text-[#0164DA] flex items-center justify-center hover:bg-[#0164DA]/20 cursor-pointer transition-colors"
-                        >
-                          <Pencil className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => setDeleteId(u.id)}
-                          className="w-7 h-7 rounded-lg bg-red-500/10 text-red-400 flex items-center justify-center hover:bg-red-500/20 cursor-pointer transition-colors"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                      {visibleCols.role && (
+                        <td className="px-5 py-4 hidden sm:table-cell">
+                          <span
+                            className={`text-[0.72rem] font-bold px-2 py-0.5 rounded-full border ${roleInfo.className}`}
+                          >
+                            {roleInfo.label}
+                          </span>
+                        </td>
+                      )}
+
+                      {visibleCols.joined && (
+                        <td className="px-5 py-4 text-xs text-crm-text-sub hidden md:table-cell">
+                          {new Date(u.createdAt).toLocaleDateString()}
+                        </td>
+                      )}
+
+                      {visibleCols.status && (
+                        <td className="px-5 py-4">
+                          <button
+                            onClick={() => toggleStatus(u)}
+                            className={`text-[0.72rem] font-bold px-2 py-0.5 rounded-full border cursor-pointer transition-all ${
+                              u.status === "active"
+                                ? "bg-[#03D9AF]/10 text-[#03D9AF] border-[#03D9AF]/20 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20"
+                                : "bg-red-500/10 text-red-400 border-red-500/20 hover:bg-[#03D9AF]/10 hover:text-[#03D9AF] hover:border-[#03D9AF]/20"
+                            }`}
+                          >
+                            {u.status === "active" ? "Active" : "Inactive"}
+                          </button>
+                        </td>
+                      )}
+
+                      <td className="px-5 py-4 text-right">
+                        <div className="flex items-center gap-2 justify-end">
+                          <button
+                            onClick={() => openEdit(u)}
+                            className="w-7 h-7 rounded-lg bg-[#0164DA]/10 text-[#0164DA] flex items-center justify-center hover:bg-[#0164DA]/20 cursor-pointer transition-colors"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => setDeleteId(u.id)}
+                            className="w-7 h-7 rounded-lg bg-red-500/10 text-red-400 flex items-center justify-center hover:bg-red-500/20 cursor-pointer transition-colors"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
 
-          {/* Mobile Card List View — shown only on mobile */}
+          {/* Mobile Card List */}
           <div className="sm:hidden divide-y divide-crm-border/40">
-            {paginatedUsers.map((u) => (
-              <div key={u.id} className="p-4 flex items-start justify-between gap-3 bg-crm-panel-hover/10">
-                <div className="flex items-start gap-3 min-w-0">
-                  <div className="w-9 h-9 rounded-xl premium-gradient flex items-center justify-center text-white font-bold text-xs shadow-sm overflow-hidden shrink-0">
-                    {u.image ? (
-                      <img src={u.image} alt={u.name} className="w-full h-full object-cover" />
-                    ) : (
-                      u.name.substring(0, 2).toUpperCase()
-                    )}
+            {paginatedUsers.map((u) => {
+              const roleInfo = getRoleBadge(u.role);
+              return (
+                <div key={u.id} className="p-4 flex items-start justify-between gap-3 bg-crm-panel-hover/10">
+                  <div className="flex items-start gap-3 min-w-0">
+                    <div className="w-9 h-9 rounded-xl premium-gradient flex items-center justify-center text-white font-bold text-xs shadow-sm overflow-hidden shrink-0">
+                      {u.image ? (
+                        <img src={u.image} alt={u.name} className="w-full h-full object-cover" />
+                      ) : (
+                        u.name.substring(0, 2).toUpperCase()
+                      )}
+                    </div>
+                    <div className="min-w-0 space-y-1">
+                      <p className="text-sm font-bold text-crm-text-main truncate">{u.name}</p>
+                      <p className="text-xs text-crm-text-sub truncate leading-none">{u.email}</p>
+                      <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                        <span
+                          className={`text-[0.72rem] font-bold px-1.5 py-0.5 rounded-full border ${roleInfo.className}`}
+                        >
+                          {roleInfo.label}
+                        </span>
+                        <span className="text-[0.72rem] text-crm-text-sub bg-crm-panel border border-crm-border px-1.5 py-0.5 rounded-md">
+                          Joined {new Date(u.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="min-w-0 space-y-1">
-                    <p className="text-sm font-bold text-crm-text-main truncate">{u.name}</p>
-                    <p className="text-xs text-crm-text-sub truncate leading-none">{u.email}</p>
-                    <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                      <span
-                        className={`text-[0.72rem] font-bold px-1.5 py-0.5 rounded-full border ${
-                          u.role === "admin"
-                            ? "bg-[#0164DA]/10 text-[#0164DA] border-[#0164DA]/20"
-                            : "bg-[#FB66BC]/10 text-[#FB66BC] border-[#FB66BC]/20"
-                        }`}
+
+                  <div className="flex flex-col items-end gap-3 shrink-0">
+                    <button
+                      onClick={() => toggleStatus(u)}
+                      className={`text-[0.72rem] font-bold px-2 py-0.5 rounded-full border cursor-pointer transition-all ${
+                        u.status === "active"
+                          ? "bg-[#03D9AF]/10 text-[#03D9AF] border-[#03D9AF]/20 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20"
+                          : "bg-red-500/10 text-red-400 border-red-500/20 hover:bg-[#03D9AF]/10 hover:text-[#03D9AF] hover:border-[#03D9AF]/20"
+                      }`}
+                    >
+                      {u.status === "active" ? "Active" : "Inactive"}
+                    </button>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={() => openEdit(u)}
+                        className="w-7 h-7 rounded-lg bg-[#0164DA]/10 text-[#0164DA] flex items-center justify-center hover:bg-[#0164DA]/20 cursor-pointer transition-colors"
                       >
-                        {u.role === "admin" ? "Admin" : "Business Dev"}
-                      </span>
-                      <span className="text-[0.72rem] text-crm-text-sub bg-crm-panel border border-crm-border px-1.5 py-0.5 rounded-md">
-                        Joined {new Date(u.createdAt).toLocaleDateString()}
-                      </span>
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => setDeleteId(u.id)}
+                        className="w-7 h-7 rounded-lg bg-red-500/10 text-red-400 flex items-center justify-center hover:bg-red-500/20 cursor-pointer transition-colors"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   </div>
                 </div>
-
-                <div className="flex flex-col items-end gap-3 shrink-0">
-                  <button
-                    onClick={() => toggleStatus(u)}
-                    className={`text-[0.72rem] font-bold px-2 py-0.5 rounded-full border cursor-pointer transition-all ${
-                      u.status === "active"
-                        ? "bg-[#03D9AF]/10 text-[#03D9AF] border-[#03D9AF]/20 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20"
-                        : "bg-red-500/10 text-red-400 border-red-500/20 hover:bg-[#03D9AF]/10 hover:text-[#03D9AF] hover:border-[#03D9AF]/20"
-                    }`}
-                  >
-                    {u.status === "active" ? "Active" : "Inactive"}
-                  </button>
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      onClick={() => openEdit(u)}
-                      className="w-7 h-7 rounded-lg bg-[#0164DA]/10 text-[#0164DA] flex items-center justify-center hover:bg-[#0164DA]/20 cursor-pointer transition-colors"
-                    >
-                      <Pencil className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={() => setDeleteId(u.id)}
-                      className="w-7 h-7 rounded-lg bg-red-500/10 text-red-400 flex items-center justify-center hover:bg-red-500/20 cursor-pointer transition-colors"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
-          {/* Pagination Controls */}
+          {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-5 py-4 border-t border-crm-border bg-crm-panel/50 text-xs">
               <span className="text-crm-text-sub">
@@ -590,8 +607,6 @@ export function UsersView() {
               </div>
             )}
             <form onSubmit={handleSubmit} className="space-y-4">
-
-
               <div>
                 <label className={labelCls}>Full Name *</label>
                 <input
@@ -642,13 +657,13 @@ export function UsersView() {
                   <label className={labelCls}>Role</label>
                   <select
                     value={role}
-                    onChange={(e) =>
-                      setRole(e.target.value as "admin" | "business_developer")
-                    }
+                    onChange={(e) => setRole(e.target.value as UserRole)}
                     className={inputCls}
                   >
                     <option value="business_developer">Business Developer</option>
                     <option value="admin">Admin</option>
+                    <option value="finance_member">Finance Member</option>
+                    <option value="finance_admin">Finance Admin</option>
                   </select>
                 </div>
                 <div>
